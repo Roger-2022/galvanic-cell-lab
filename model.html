@@ -17,7 +17,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   :root{--bg:#060a14;--bg-panel:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.07);--text:#e4e6ec;--text-dim:rgba(255,255,255,0.45);--cyan:#5cc4c4;--blue:#4a90d9;--gold:#c9a84c;--green:#5cb85c;--purple:#9b7ed8;--red:#d9534f}
   html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
-  .app{display:grid;grid-template-columns:1fr 360px;grid-template-rows:56px 1fr;height:100vh}
+  .app{display:grid;grid-template-columns:1fr;grid-template-rows:56px 1fr;height:100vh}
   .topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);z-index:10}
   .topbar-left{display:flex;align-items:center;gap:1rem}
   .back-btn{display:flex;align-items:center;gap:.4rem;color:var(--text-dim);text-decoration:none;font-size:.8rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s}
@@ -44,8 +44,14 @@
   .mode-text{position:absolute;top:1rem;left:1.5rem;font-size:.72rem;color:var(--text-dim);display:flex;align-items:center;gap:.5rem;z-index:10}
   .mode-text .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 2s ease-in-out infinite}
   @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
-  .hint-text{position:absolute;top:1rem;right:380px;font-size:.68rem;color:var(--text-dim);opacity:.5;z-index:10}
-  .detail-panel{border-left:1px solid var(--border);background:rgba(0,0,0,0.25);overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;backdrop-filter:blur(8px)}
+  .hint-text{position:absolute;top:1rem;right:1.5rem;font-size:.68rem;color:var(--text-dim);opacity:.5;z-index:10}
+  .detail-panel{position:fixed;top:56px;right:0;bottom:0;width:360px;border-left:1px solid var(--border);background:rgba(8,12,22,0.95);backdrop-filter:blur(12px);overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);z-index:20}
+  .detail-panel.open{transform:translateX(0)}
+  .sidebar-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:19;width:32px;height:64px;border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;background:rgba(8,12,22,0.85);backdrop-filter:blur(8px);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;font-family:inherit}
+  .sidebar-toggle:hover{background:rgba(92,196,196,0.1);border-color:var(--cyan);color:var(--cyan)}
+  .sidebar-toggle.hidden{display:none}
+  .sidebar-close{position:absolute;top:.8rem;right:.8rem;width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,0.04);color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .2s;z-index:2}
+  .sidebar-close:hover{border-color:var(--red);color:var(--red);background:rgba(224,96,112,0.08)}
   .panel-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-dim);gap:1rem}
   .panel-placeholder-icon{width:48px;height:48px;border-radius:12px;background:var(--bg-panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;opacity:.5}
   .panel-placeholder p{font-size:.82rem;line-height:1.6;max-width:240px}
@@ -97,7 +103,11 @@
     </div>
     <a href="model-2d.html" class="switch-btn">切换 2D 视图</a>
   </div>
-  <div class="detail-panel">
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="window._toggleSidebar()" title="查看详情">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="17" y2="7"/><line x1="9" y1="11" x2="17" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
+  </button>
+  <div class="detail-panel" id="detailPanel">
+    <button class="sidebar-close" onclick="window._closeSidebar()" title="关闭">&times;</button>
     <div class="panel-placeholder" id="panelPlaceholder" style="align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:1rem">
       <div style="text-align:center;padding-top:.5rem">
         <div style="font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em;margin-bottom:.3rem">原电池四大构成要素</div>
@@ -803,11 +813,38 @@ let step = 0;
 const keys = ['overview', 'electrode', 'reactant', 'econductor', 'iconductor'];
 const names = ['总览', '电极材料', '电极反应物', '电子导体', '离子导体'];
 
+// ═══════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════
+function toggleSidebar() {
+  const panel = document.getElementById('detailPanel');
+  const toggle = document.getElementById('sidebarToggle');
+  panel.classList.toggle('open');
+  toggle.classList.toggle('hidden', panel.classList.contains('open'));
+}
+
+function openSidebar() {
+  const panel = document.getElementById('detailPanel');
+  const toggle = document.getElementById('sidebarToggle');
+  if (!panel.classList.contains('open')) {
+    panel.classList.add('open');
+    toggle.classList.add('hidden');
+  }
+}
+
+function closeSidebar() {
+  const panel = document.getElementById('detailPanel');
+  const toggle = document.getElementById('sidebarToggle');
+  panel.classList.remove('open');
+  toggle.classList.remove('hidden');
+}
+
 function showPanel(key) {
   document.getElementById('panelPlaceholder').style.display = 'none';
   document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
   const el = document.getElementById('detail-' + key);
   if (el) el.classList.add('visible');
+  openSidebar();
 }
 
 function zoomTo(key) {
@@ -832,6 +869,7 @@ function goOverview() {
   document.getElementById('panelPlaceholder').style.display = 'flex';
   document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
   document.getElementById('modeText').textContent = '总览模式 · 点击部件查看详情 · 拖拽旋转';
+  closeSidebar();
 }
 
 function nextStep() {
@@ -927,6 +965,9 @@ window._goOverview = goOverview;
 window._goToStep = goToStep;
 window._toggleParticles = toggleParticles;
 window._toggleAutoRotate = toggleAutoRotate;
+window._toggleSidebar = toggleSidebar;
+window._openSidebar = openSidebar;
+window._closeSidebar = closeSidebar;
 </script>
 </body>
 </html>
