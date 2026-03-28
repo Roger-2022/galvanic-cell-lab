@@ -1,0 +1,9 @@
+{
+  "name": "galvanic-cell-lab",
+  "routes": [
+    {
+      "path": "/api/*",
+      "function": "functions/index.js"
+    }
+  ]
+}
