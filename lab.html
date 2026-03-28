@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>虚拟实验室 — 原电池探究平台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #080c16;
+    --bg-panel: rgba(255,255,255,0.035);
+    --border: rgba(255,255,255,0.07);
+    --text: #e4e6ec;
+    --text-dim: rgba(255,255,255,0.45);
+    --blue: #4a90d9;
+    --cyan: #5cc4c4;
+    --green: #5cb85c;
+    --red: #d9534f;
+    --gold: #c9a84c;
+    --purple: #9b7ed8;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* ── Group Selection Screen ── */
+  .screen { display: none; width: 100%; height: 100%; }
+  .screen.active { display: flex; }
+
+  #groupScreen {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+  }
+
+  .group-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #e4e6ec, var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.06em;
+  }
+
+  .group-subtitle {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-top: -0.8rem;
+  }
+
+  .group-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.8rem;
+    max-width: 500px;
+  }
+
+  .group-btn {
+    width: 80px; height: 80px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    font-family: inherit;
+  }
+
+  .group-btn span {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    font-weight: 400;
+  }
+
+  .group-btn:hover {
+    border-color: var(--blue);
+    background: rgba(74,144,217,0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+  }
+
+  .group-btn:active { transform: scale(0.95); }
+
+  /* ── Lab Screen ── */
+  #labScreen {
+    flex-direction: column;
+  }
+
+  .lab-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1.5rem;
+    height: 56px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .lab-topbar-left {
+    display: flex; align-items: center; gap: 1rem;
+  }
+
+  .back-btn {
+    display: flex; align-items: center; gap: 0.4rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .back-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  .lab-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .lab-group-badge {
+    font-size: 0.72rem;
+    padding: 0.25rem 0.7rem;
+    border-radius: 10px;
+    background: rgba(74,144,217,0.1);
+    color: var(--blue);
+    border: 1px solid rgba(74,144,217,0.2);
+  }
+
+  .lab-stats {
+    display: flex; gap: 1.2rem; align-items: center;
+  }
+
+  .stat-item {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+  }
+  .stat-value {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ── Lab main layout ── */
+  .lab-main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    overflow: hidden;
+  }
+
+  /* ── Material tray (left) ── */
+  .material-tray {
+    border-right: 1px solid var(--border);
+    padding: 1.2rem;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.15);
+  }
+
+  .tray-section {
+    margin-bottom: 1.2rem;
+  }
+
+  .tray-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .material-item {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.3rem;
+    user-select: none;
+  }
+
+  .material-item:hover {
+    border-color: var(--border);
+    background: rgba(255,255,255,0.03);
+  }
+
+  .material-item.selected {
+    border-color: var(--blue);
+    background: rgba(74,144,217,0.08);
+  }
+
+  .material-item.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .mat-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .mat-icon.metal { background: rgba(92,196,196,0.1); border: 1px solid rgba(92,196,196,0.15); color: var(--cyan); }
+  .mat-icon.solution { background: rgba(155,126,216,0.1); border: 1px solid rgba(155,126,216,0.15); color: var(--purple); }
+  .mat-icon.wire { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.15); color: var(--gold); }
+
+  .mat-info {
+    display: flex; flex-direction: column;
+  }
+
+  .mat-name {
+    font-size: 0.82rem;
+    font-weight: 500;
+  }
+
+  .mat-desc {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-top: 0.1rem;
+  }
+
+  /* ── Circuit builder (center) ── */
+  .circuit-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+  }
+
+  .circuit-diagram {
+    position: relative;
+    width: 460px;
+    height: 380px;
+  }
+
+  .circuit-svg {
+    width: 100%; height: 100%;
+  }
+
+  /* ── Drop slots ── */
+  .drop-slot {
+    position: absolute;
+    border: 2px dashed rgba(255,255,255,0.12);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    z-index: 5;
+  }
+
+  .drop-slot:hover {
+    border-color: rgba(74,144,217,0.4);
+    background: rgba(74,144,217,0.04);
+  }
+
+  .drop-slot.filled {
+    border-style: solid;
+    border-color: var(--blue);
+    background: rgba(74,144,217,0.06);
+  }
+
+  .drop-slot.error {
+    border-color: var(--red);
+    background: rgba(217,83,79,0.06);
+    animation: slotShake 0.5s;
+  }
+
+  .drop-slot.correct {
+    border-color: var(--green);
+    background: rgba(92,184,92,0.06);
+  }
+
+  @keyframes slotShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+
+  .slot-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .slot-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--blue);
+    margin-top: 0.2rem;
+  }
+
+  .slot-hint {
+    font-size: 0.6rem;
+    color: var(--text-dim);
+    opacity: 0.6;
+    margin-top: 0.2rem;
+  }
+
+  /* ── Submit button ── */
+  .submit-area {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+  }
+
+  .submit-btn {
+    padding: 0.7rem 2.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: inherit;
+    letter-spacing: 0.05em;
+  }
+
+  .submit-btn.primary {
+    background: linear-gradient(135deg, var(--blue), #3a7bc8);
+    color: white;
+    box-shadow: 0 4px 20px rgba(74,144,217,0.3);
+  }
+  .submit-btn.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(74,144,217,0.4);
+  }
+  .submit-btn.primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .submit-btn.secondary {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .submit-btn.secondary:hover {
+    border-color: rgba(255,255,255,0.15);
+    color: var(--text);
+  }
+
+  /* ── Bulb animation ── */
+  .bulb-container {
+    position: absolute;
+    top: 15px; left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .bulb-svg {
+    width: 50px; height: 50px;
+    transition: all 0.5s;
+  }
+
+  .bulb-svg.lit {
+    filter: drop-shadow(0 0 15px rgba(255,220,100,0.8));
+  }
+
+  /* ── Right panel: History + Feedback ── */
+  .history-panel {
+    border-left: 1px solid var(--border);
+    background: rgba(0,0,0,0.15);
+    padding: 1.2rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .history-title {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .history-item {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.8rem;
+    animation: fadeSlideIn 0.3s ease-out;
+  }
+
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .history-item.success {
+    border-color: rgba(92,184,92,0.3);
+    background: rgba(92,184,92,0.04);
+  }
+
+  .history-item.failure {
+    border-color: rgba(217,83,79,0.2);
+  }
+
+  .history-attempt-num {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 0.3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .history-result-tag {
+    font-size: 0.6rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+
+  .history-result-tag.pass { background: rgba(92,184,92,0.15); color: var(--green); }
+  .history-result-tag.fail { background: rgba(217,83,79,0.15); color: var(--red); }
+
+  .history-choices {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  .history-feedback {
+    font-size: 0.75rem;
+    color: var(--gold);
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--border);
+    line-height: 1.5;
+  }
+
+  /* ── Cooldown overlay ── */
+  .cooldown-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8,12,22,0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    backdrop-filter: blur(5px);
+  }
+
+  .cooldown-overlay.active { display: flex; }
+
+  .cooldown-timer {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .cooldown-msg {
+    font-size: 0.95rem;
+    color: var(--text-dim);
+    margin-top: 0.8rem;
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.6;
+  }
+
+  .cooldown-progress {
+    width: 200px;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+  }
+
+  .cooldown-progress-bar {
+    height: 100%;
+    background: var(--gold);
+    border-radius: 2px;
+    transition: width 1s linear;
+  }
+
+  /* ── Task card ── */
+  .task-card {
+    background: rgba(74,144,217,0.05);
+    border: 1px solid rgba(74,144,217,0.15);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .task-card-label {
+    font-size: 0.65rem;
+    color: var(--blue);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+  }
+
+  .task-card p {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: rgba(255,255,255,0.75);
+  }
+
+  .task-card .reaction {
+    font-family: 'Times New Roman', serif;
+    font-size: 0.95rem;
+    color: var(--cyan);
+    text-align: center;
+    margin: 0.5rem 0;
+  }
+
+  /* ── Failed overlay ── */
+  .failed-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8,12,22,0.9);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    backdrop-filter: blur(8px);
+  }
+
+  .failed-overlay.active { display: flex; }
+
+  .failed-icon {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    background: rgba(217,83,79,0.1);
+    border: 2px solid rgba(217,83,79,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .failed-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .failed-msg {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+    max-width: 360px;
+    line-height: 1.6;
+  }
+
+  /* ── Success overlay ── */
+  .success-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(8,12,22,0.85);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 25;
+    backdrop-filter: blur(8px);
+  }
+  .success-overlay.active { display: flex; }
+
+  .success-icon {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(92,184,92,0.1);
+    border: 2px solid rgba(92,184,92,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.2rem;
+    margin-bottom: 1.2rem;
+    animation: successPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes successPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(92,184,92,0.2); }
+    50% { box-shadow: 0 0 30px 10px rgba(92,184,92,0.15); }
+  }
+
+  .success-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem;
+    color: var(--green);
+    margin-bottom: 0.5rem;
+  }
+
+  .success-msg {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    text-align: center;
+    max-width: 400px;
+    line-height: 1.7;
+  }
+
+  .success-detail {
+    margin-top: 1.2rem;
+    background: rgba(92,184,92,0.05);
+    border: 1px solid rgba(92,184,92,0.15);
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.7);
+    max-width: 420px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ========== Screen 1: Group Selection ========== -->
+<div class="screen active" id="groupScreen">
+  <div class="group-title">选择你的小组</div>
+  <div class="group-subtitle">请在下方选择你所在的组号，进入虚拟实验室</div>
+  <div class="group-grid" id="groupGrid"></div>
+  <div style="color:var(--text-dim);font-size:0.72rem;margin-top:0.5rem;">
+    <a href="index.html" style="color:var(--text-dim);text-decoration:none;">← 返回主页</a>
+  </div>
+</div>
+
+<!-- ========== Screen 2: Lab ========== -->
+<div class="screen" id="labScreen">
+  <!-- Topbar -->
+  <div class="lab-topbar">
+    <div class="lab-topbar-left">
+      <div class="back-btn" onclick="backToGroup()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        切换组
+      </div>
+      <div class="lab-title">虚拟实验室</div>
+      <div class="lab-group-badge" id="groupBadge">第 1 组</div>
+    </div>
+    <div class="lab-stats">
+      <div class="stat-item">剩余尝试 <span class="stat-value" id="attemptsLeft">5</span></div>
+      <div class="stat-item" style="color:var(--text-dim);font-size:0.65rem;">|</div>
+      <div class="stat-item">冷却时间 <span class="stat-value" id="cooldownDisplay">30s</span></div>
+    </div>
+  </div>
+
+  <!-- Lab Main -->
+  <div class="lab-main">
+    <!-- Left: Material Tray -->
+    <div class="material-tray">
+      <div class="task-card">
+        <div class="task-card-label">实验任务</div>
+        <p>基于以下氧化还原反应，从右侧材料中选择合适的组件，设计一个能点亮灯泡的原电池装置：</p>
+        <div class="reaction">Fe + 2H⁺ → Fe²⁺ + H₂↑</div>
+      </div>
+
+      <div class="tray-section">
+        <div class="tray-label">电极材料</div>
+        <div class="material-item" data-type="cathode" data-value="Fe" onclick="selectMaterial(this, 'neg_electrode')">
+          <div class="mat-icon metal">Fe</div>
+          <div class="mat-info"><div class="mat-name">铁片</div><div class="mat-desc">活泼金属，能导电</div></div>
+        </div>
+        <div class="material-item" data-type="cathode" data-value="Cu" onclick="selectMaterial(this, 'pos_electrode')">
+          <div class="mat-icon metal">Cu</div>
+          <div class="mat-info"><div class="mat-name">铜片</div><div class="mat-desc">较不活泼金属，能导电</div></div>
+        </div>
+        <div class="material-item" data-type="cathode" data-value="Zn" onclick="selectMaterial(this, 'neg_electrode')">
+          <div class="mat-icon metal">Zn</div>
+          <div class="mat-info"><div class="mat-name">锌片</div><div class="mat-desc">活泼金属，能导电</div></div>
+        </div>
+        <div class="material-item" data-type="cathode" data-value="C" onclick="selectMaterial(this, 'pos_electrode')">
+          <div class="mat-icon metal">C</div>
+          <div class="mat-info"><div class="mat-name">石墨棒</div><div class="mat-desc">非金属导体，化学性质稳定</div></div>
+        </div>
+        <div class="material-item" data-type="cathode" data-value="glass" onclick="selectMaterial(this, 'pos_electrode')">
+          <div class="mat-icon metal" style="opacity:0.5">玻</div>
+          <div class="mat-info"><div class="mat-name">玻璃棒</div><div class="mat-desc">绝缘体，不导电</div></div>
+        </div>
+      </div>
+
+      <div class="tray-section">
+        <div class="tray-label">电解质溶液</div>
+        <div class="material-item" data-type="solution" data-value="HCl" onclick="selectMaterial(this, 'solution')">
+          <div class="mat-icon solution">HCl</div>
+          <div class="mat-info"><div class="mat-name">稀盐酸</div><div class="mat-desc">含H⁺和Cl⁻</div></div>
+        </div>
+        <div class="material-item" data-type="solution" data-value="H2SO4" onclick="selectMaterial(this, 'solution')">
+          <div class="mat-icon solution">H₂SO₄</div>
+          <div class="mat-info"><div class="mat-name">稀硫酸</div><div class="mat-desc">含H⁺和SO₄²⁻</div></div>
+        </div>
+        <div class="material-item" data-type="solution" data-value="NaCl" onclick="selectMaterial(this, 'solution')">
+          <div class="mat-icon solution">NaCl</div>
+          <div class="mat-info"><div class="mat-name">氯化钠溶液</div><div class="mat-desc">含Na⁺和Cl⁻</div></div>
+        </div>
+        <div class="material-item" data-type="solution" data-value="ethanol" onclick="selectMaterial(this, 'solution')">
+          <div class="mat-icon solution" style="opacity:0.5">醇</div>
+          <div class="mat-info"><div class="mat-name">无水乙醇</div><div class="mat-desc">有机溶剂，不导电</div></div>
+        </div>
+        <div class="material-item" data-type="solution" data-value="water" onclick="selectMaterial(this, 'solution')">
+          <div class="mat-icon solution" style="opacity:0.5">H₂O</div>
+          <div class="mat-info"><div class="mat-name">蒸馏水</div><div class="mat-desc">纯水，几乎不导电</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Circuit Diagram -->
+    <div class="circuit-area">
+      <!-- Cooldown overlay -->
+      <div class="cooldown-overlay" id="cooldownOverlay">
+        <div class="cooldown-timer" id="cooldownTimer">30</div>
+        <div class="cooldown-msg">请思考：上次的方案为什么不能工作？<br/>冷却结束后可再次尝试</div>
+        <div class="cooldown-progress">
+          <div class="cooldown-progress-bar" id="cooldownBar"></div>
+        </div>
+      </div>
+
+      <!-- Failed overlay -->
+      <div class="failed-overlay" id="failedOverlay">
+        <div class="failed-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#d9534f" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="failed-title">实验终止</div>
+        <div class="failed-msg">你的小组已用完全部尝试次数。请等待教师指导后重置。</div>
+      </div>
+
+      <!-- Success overlay -->
+      <div class="success-overlay" id="successOverlay">
+        <div class="success-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#5cb85c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="success-title">灯泡亮了！</div>
+        <div class="success-msg">恭喜你的小组成功设计了一个原电池装置！</div>
+        <div class="success-detail" id="successDetail"></div>
+      </div>
+
+      <div class="circuit-diagram">
+        <!-- Bulb -->
+        <div class="bulb-container">
+          <svg class="bulb-svg" id="bulbSvg" viewBox="0 0 50 50">
+            <circle cx="25" cy="22" r="14" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" id="bulbGlass"/>
+            <line x1="20" y1="36" x2="30" y2="36" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-linecap="round"/>
+            <line x1="21" y1="39" x2="29" y2="39" stroke="rgba(255,255,255,0.15)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M22 28 Q25 18 28 28" fill="none" stroke="rgba(255,220,100,0.3)" stroke-width="1.5" id="bulbFilament"/>
+          </svg>
+          <div style="font-size:0.65rem;color:var(--text-dim);margin-top:0.2rem;">灯泡</div>
+        </div>
+
+        <!-- SVG wires -->
+        <svg class="circuit-svg" viewBox="0 0 460 380">
+          <!-- Left wire -->
+          <path d="M100 60 L100 35 Q100 20 115 20 L230 20" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="2"/>
+          <!-- Right wire -->
+          <path d="M360 60 L360 35 Q360 20 345 20 L230 20" fill="none" stroke="rgba(201,168,76,0.3)" stroke-width="2"/>
+          <!-- Beaker outline -->
+          <rect x="70" y="140" width="320" height="200" rx="6" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1.5"/>
+          <!-- Solution fill -->
+          <rect x="72" y="180" width="316" height="158" rx="4" fill="rgba(155,126,216,0.08)"/>
+          <!-- Solution level line -->
+          <line x1="72" y1="180" x2="388" y2="180" stroke="rgba(155,126,216,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+          <!-- Left electrode slot guide -->
+          <rect x="85" y="60" width="30" height="220" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Right electrode slot guide -->
+          <rect x="345" y="60" width="30" height="220" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4"/>
+        </svg>
+
+        <!-- Drop slots -->
+        <div class="drop-slot" id="slot-neg" style="left:65px;top:50px;width:70px;height:240px;" onclick="openSlotSelector('neg_electrode')">
+          <span class="slot-label">负极</span>
+          <span class="slot-value" id="slotNegValue">—</span>
+          <span class="slot-hint">点击选择</span>
+        </div>
+
+        <div class="drop-slot" id="slot-pos" style="right:25px;top:50px;width:70px;height:240px;" onclick="openSlotSelector('pos_electrode')">
+          <span class="slot-label">正极</span>
+          <span class="slot-value" id="slotPosValue">—</span>
+          <span class="slot-hint">点击选择</span>
+        </div>
+
+        <div class="drop-slot" id="slot-solution" style="left:140px;bottom:25px;width:180px;height:60px;" onclick="openSlotSelector('solution')">
+          <span class="slot-label">电解质溶液</span>
+          <span class="slot-value" id="slotSolValue">—</span>
+          <span class="slot-hint">点击选择</span>
+        </div>
+      </div>
+
+      <div class="submit-area">
+        <button class="submit-btn secondary" onclick="resetChoices()">重置选择</button>
+        <button class="submit-btn primary" id="submitBtn" onclick="submitDesign()" disabled>提交方案</button>
+      </div>
+    </div>
+
+    <!-- Right: History -->
+    <div class="history-panel">
+      <div class="history-title">实验记录</div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div style="text-align:center;color:var(--text-dim);font-size:0.78rem;margin-top:2rem;">
+          尚未进行实验
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════ Configuration ══════════
+const CONFIG = {
+  maxAttempts: 5,
+  cooldownSeconds: 30,
+  totalGroups: 15
+};
+
+// ══════════ State ══════════
+let currentGroup = null;
+let choices = { neg_electrode: null, pos_electrode: null, solution: null };
+let activeSlot = null; // which slot is being selected for
+
+// Group data: try server API first, fallback to localStorage
+const API_BASE = window.location.origin;
+let useServer = false;
+
+// Test server availability on load
+fetch(API_BASE + '/api/config').then(r => { if (r.ok) useServer = true; }).catch(() => {});
+
+function getGroupData(groupId) {
+  // Synchronous read from localStorage (server sync is async overlay)
+  const key = `galvanic_lab_group_${groupId}`;
+  const data = localStorage.getItem(key);
+  return data ? JSON.parse(data) : { attempts: [], attemptsUsed: 0, success: false };
+}
+
+function saveGroupData(groupId, data) {
+  localStorage.setItem(`galvanic_lab_group_${groupId}`, JSON.stringify(data));
+  localStorage.setItem('galvanic_lab_lastUpdate', Date.now().toString());
+  // Also sync to server if available
+  if (useServer) {
+    fetch(API_BASE + '/api/group', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: groupId, data })
+    }).catch(() => {});
+  }
+}
+
+// On entering a group, try to fetch latest from server
+async function syncGroupFromServer(groupId) {
+  if (!useServer) return;
+  try {
+    const res = await fetch(API_BASE + '/api/group?id=' + groupId);
+    if (res.ok) {
+      const serverData = await res.json();
+      if (serverData && serverData.attemptsUsed > 0) {
+        // Server has data — use it (server is authoritative)
+        localStorage.setItem(`galvanic_lab_group_${groupId}`, JSON.stringify(serverData));
+      }
+    }
+  } catch {}
+}
+
+// ══════════ Group Selection ══════════
+function initGroupScreen() {
+  const grid = document.getElementById('groupGrid');
+  grid.innerHTML = '';
+  for (let i = 1; i <= CONFIG.totalGroups; i++) {
+    const data = getGroupData(i);
+    const btn = document.createElement('button');
+    btn.className = 'group-btn';
+    btn.innerHTML = `${i}<span>第${i}组</span>`;
+    if (data.success) {
+      btn.style.borderColor = 'rgba(92,184,92,0.3)';
+      btn.style.background = 'rgba(92,184,92,0.05)';
+    }
+    btn.onclick = () => enterLab(i);
+    grid.appendChild(btn);
+  }
+}
+
+async function enterLab(groupId) {
+  currentGroup = groupId;
+  document.getElementById('groupScreen').classList.remove('active');
+  document.getElementById('labScreen').classList.add('active');
+  document.getElementById('groupBadge').textContent = `第 ${groupId} 组`;
+
+  // Sync from server if available
+  await syncGroupFromServer(groupId);
+
+  const data = getGroupData(groupId);
+  updateLabUI(data);
+  renderHistory(data);
+  resetChoices();
+
+  if (data.success) {
+    showSuccessOverlay(data);
+  } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
+    document.getElementById('failedOverlay').classList.add('active');
+  }
+}
+
+function backToGroup() {
+  document.getElementById('labScreen').classList.remove('active');
+  document.getElementById('groupScreen').classList.add('active');
+  currentGroup = null;
+  initGroupScreen();
+}
+
+// ══════════ Material Selection ══════════
+function selectMaterial(el, slotType) {
+  if (!activeSlot && !slotType) return;
+  const targetSlot = slotType || activeSlot;
+
+  // Get value
+  const value = el.dataset.value;
+  const name = el.querySelector('.mat-name').textContent;
+
+  // Determine which slot this goes to based on click context
+  // For electrode materials, let user pick which slot
+  const type = el.dataset.type;
+  if (type === 'cathode' && !slotType) {
+    // This shouldn't happen with current UI, but handle gracefully
+    return;
+  }
+
+  choices[targetSlot] = { value, name };
+
+  // Update slot UI
+  updateSlotUI(targetSlot, name);
+
+  // Highlight selected material
+  updateMaterialHighlights();
+
+  // Check if all filled
+  checkSubmitReady();
+}
+
+function openSlotSelector(slotType) {
+  activeSlot = slotType;
+  // Highlight compatible materials
+  document.querySelectorAll('.material-item').forEach(item => {
+    item.classList.remove('selected');
+    // Remove previous click handlers and add new ones
+    const newItem = item.cloneNode(true);
+    item.parentNode.replaceChild(newItem, item);
+
+    newItem.onclick = () => {
+      choices[slotType] = {
+        value: newItem.dataset.value,
+        name: newItem.querySelector('.mat-name').textContent
+      };
+      updateSlotUI(slotType, newItem.querySelector('.mat-name').textContent);
+      updateMaterialHighlights();
+      checkSubmitReady();
+      activeSlot = null;
+    };
+  });
+
+  // Visual feedback on the slot
+  document.querySelectorAll('.drop-slot').forEach(s => s.style.borderColor = '');
+  document.getElementById(`slot-${slotType === 'neg_electrode' ? 'neg' : slotType === 'pos_electrode' ? 'pos' : 'solution'}`)
+    .style.borderColor = 'rgba(74,144,217,0.5)';
+}
+
+function updateSlotUI(slotType, name) {
+  const slotMap = { neg_electrode: 'slotNegValue', pos_electrode: 'slotPosValue', solution: 'slotSolValue' };
+  const slotEl = document.getElementById(slotMap[slotType]);
+  if (slotEl) slotEl.textContent = name || '—';
+
+  const slotDiv = slotEl?.closest('.drop-slot');
+  if (slotDiv && name) {
+    slotDiv.classList.add('filled');
+  }
+}
+
+function updateMaterialHighlights() {
+  document.querySelectorAll('.material-item').forEach(item => {
+    item.classList.remove('selected');
+    const val = item.dataset.value;
+    if ((choices.neg_electrode?.value === val) ||
+        (choices.pos_electrode?.value === val) ||
+        (choices.solution?.value === val)) {
+      item.classList.add('selected');
+    }
+  });
+}
+
+function checkSubmitReady() {
+  const ready = choices.neg_electrode && choices.pos_electrode && choices.solution;
+  document.getElementById('submitBtn').disabled = !ready;
+}
+
+function resetChoices() {
+  choices = { neg_electrode: null, pos_electrode: null, solution: null };
+  ['slotNegValue', 'slotPosValue', 'slotSolValue'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+  });
+  document.querySelectorAll('.drop-slot').forEach(s => {
+    s.classList.remove('filled', 'error', 'correct');
+    s.style.borderColor = '';
+  });
+  document.querySelectorAll('.material-item').forEach(i => i.classList.remove('selected'));
+  document.getElementById('submitBtn').disabled = true;
+  activeSlot = null;
+}
+
+// ══════════ Submit & Evaluation ══════════
+function submitDesign() {
+  const data = getGroupData(currentGroup);
+  if (data.attemptsUsed >= CONFIG.maxAttempts || data.success) return;
+
+  const neg = choices.neg_electrode?.value;
+  const pos = choices.pos_electrode?.value;
+  const sol = choices.solution?.value;
+
+  // Evaluate the design
+  const result = evaluateDesign(neg, pos, sol);
+
+  // Record attempt
+  data.attemptsUsed++;
+  data.attempts.push({
+    neg, pos, sol,
+    negName: choices.neg_electrode?.name,
+    posName: choices.pos_electrode?.name,
+    solName: choices.solution?.name,
+    success: result.success,
+    feedback: result.feedback,
+    timestamp: Date.now()
+  });
+
+  if (result.success) {
+    data.success = true;
+  }
+
+  saveGroupData(currentGroup, data);
+  updateLabUI(data);
+  renderHistory(data);
+
+  // Animate result
+  if (result.success) {
+    animateSuccess();
+    showSuccessOverlay(data);
+  } else {
+    animateFailure(result);
+    // Start cooldown if attempts remain
+    if (data.attemptsUsed < CONFIG.maxAttempts) {
+      startCooldown();
+    } else {
+      document.getElementById('failedOverlay').classList.add('active');
+    }
+  }
+}
+
+function evaluateDesign(neg, pos, sol) {
+  // Correct answers for Fe + 2H+ -> Fe2+ + H2
+  // Neg electrode (anode): must be Fe (the reactant being oxidized)
+  // Pos electrode (cathode): must be Cu or C (conductive, less active than Fe)
+  // Solution: must contain H+ (HCl or H2SO4)
+
+  const errors = [];
+  let feedback = '';
+
+  // Check solution first
+  if (sol === 'ethanol' || sol === 'water') {
+    errors.push('solution');
+    if (sol === 'ethanol') feedback = '无水乙醇是非电解质，不能导电，无法形成内电路。离子导体必须是电解质溶液。';
+    else feedback = '蒸馏水几乎不含自由移动的离子，无法导电，相当于断路。';
+    return { success: false, feedback, errors };
+  }
+
+  if (sol === 'NaCl') {
+    errors.push('solution');
+    feedback = 'NaCl溶液虽能导电，但不含H⁺，无法为正极提供氢离子参与反应。本实验需要酸性溶液提供H⁺。';
+    return { success: false, feedback, errors };
+  }
+
+  // Check neg electrode
+  if (neg !== 'Fe') {
+    errors.push('neg');
+    if (neg === 'Zn') feedback = '锌比铁更活泼，如果选锌做负极，锌会优先失电子而非铁，偏离了目标反应 Fe + 2H⁺ → Fe²⁺ + H₂↑。';
+    else if (neg === 'Cu') feedback = '铜比铁不活泼，不会自发失电子。在这个反应中，铁作为还原剂失电子，应选铁做负极。';
+    else if (neg === 'C') feedback = '石墨不参加化学反应，不能作为此反应的负极反应物。负极需要选择能失电子的活泼金属。';
+    else if (neg === 'glass') feedback = '玻璃棒是绝缘体，不能导电，无法作为电极材料。';
+    return { success: false, feedback, errors };
+  }
+
+  // Check pos electrode
+  if (pos === 'glass') {
+    errors.push('pos');
+    feedback = '玻璃棒不导电，无法作为电极材料。正极需要选择能导电的材料。';
+    return { success: false, feedback, errors };
+  }
+
+  if (pos === 'Fe') {
+    errors.push('pos');
+    feedback = '正负极都选铁，两极材料相同且都是活泼金属，无法确定哪一极优先失电子，电池无法正常工作。正极应选比铁不活泼的导体。';
+    return { success: false, feedback, errors };
+  }
+
+  if (pos === 'Zn') {
+    errors.push('pos');
+    feedback = '锌比铁更活泼！如果锌做正极，锌反而会优先失电子，反应方向与预期相反。正极应选比铁不活泼的导体（如铜或石墨）。';
+    return { success: false, feedback, errors };
+  }
+
+  // Cu or C as pos electrode with HCl or H2SO4 = SUCCESS
+  if ((pos === 'Cu' || pos === 'C') && (sol === 'HCl' || sol === 'H2SO4')) {
+    feedback = `正确！铁做负极失电子（氧化反应），${pos === 'Cu' ? '铜' : '石墨'}做正极提供得电子场所（还原反应），${sol === 'HCl' ? '盐酸' : '硫酸'}提供H⁺作为正极反应物并传导离子。`;
+    return { success: true, feedback, errors: [] };
+  }
+
+  return { success: false, feedback: '请检查你的选择是否满足原电池的四大构成要素。', errors: ['unknown'] };
+}
+
+// ══════════ Animation ══════════
+function animateSuccess() {
+  const bulb = document.getElementById('bulbSvg');
+  const glass = document.getElementById('bulbGlass');
+  const filament = document.getElementById('bulbFilament');
+
+  bulb.classList.add('lit');
+  glass.setAttribute('fill', 'rgba(255,220,100,0.15)');
+  glass.setAttribute('stroke', 'rgba(255,220,100,0.5)');
+  filament.setAttribute('stroke', 'rgba(255,220,100,1)');
+  filament.setAttribute('stroke-width', '2');
+
+  // Mark slots as correct
+  document.querySelectorAll('.drop-slot').forEach(s => {
+    s.classList.remove('error');
+    s.classList.add('correct');
+  });
+}
+
+function animateFailure(result) {
+  document.querySelectorAll('.drop-slot').forEach(s => s.classList.add('error'));
+  setTimeout(() => {
+    document.querySelectorAll('.drop-slot').forEach(s => s.classList.remove('error'));
+  }, 1500);
+}
+
+function showSuccessOverlay(data) {
+  const overlay = document.getElementById('successOverlay');
+  const lastAttempt = data.attempts[data.attempts.length - 1];
+  document.getElementById('successDetail').innerHTML = `
+    <div style="margin-bottom:0.5rem;font-weight:600;color:var(--green);">你的设计方案：</div>
+    <div>负极：${lastAttempt.negName}（Fe失电子，发生氧化反应）</div>
+    <div>正极：${lastAttempt.posName}（H⁺得电子，发生还原反应）</div>
+    <div>溶液：${lastAttempt.solName}（提供H⁺，传导离子）</div>
+    <div style="margin-top:0.6rem;color:var(--text-dim);">经过 ${data.attemptsUsed} 次尝试成功</div>
+  `;
+  overlay.classList.add('active');
+}
+
+// ══════════ Cooldown ══════════
+function startCooldown() {
+  const overlay = document.getElementById('cooldownOverlay');
+  const timer = document.getElementById('cooldownTimer');
+  const bar = document.getElementById('cooldownBar');
+  overlay.classList.add('active');
+
+  let remaining = CONFIG.cooldownSeconds;
+  timer.textContent = remaining;
+  bar.style.width = '100%';
+
+  const interval = setInterval(() => {
+    remaining--;
+    timer.textContent = remaining;
+    bar.style.width = `${(remaining / CONFIG.cooldownSeconds) * 100}%`;
+
+    if (remaining <= 0) {
+      clearInterval(interval);
+      overlay.classList.remove('active');
+      resetChoices();
+    }
+  }, 1000);
+}
+
+// ══════════ UI Updates ══════════
+function updateLabUI(data) {
+  const remaining = CONFIG.maxAttempts - data.attemptsUsed;
+  document.getElementById('attemptsLeft').textContent = remaining;
+  document.getElementById('attemptsLeft').style.color =
+    remaining <= 1 ? 'var(--red)' : remaining <= 2 ? 'var(--gold)' : '';
+}
+
+function renderHistory(data) {
+  const list = document.getElementById('historyList');
+  if (data.attempts.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:var(--text-dim);font-size:0.78rem;margin-top:2rem;">尚未进行实验</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // Show in reverse order (latest first)
+  [...data.attempts].reverse().forEach((attempt, idx) => {
+    const num = data.attempts.length - idx;
+    const item = document.createElement('div');
+    item.className = `history-item ${attempt.success ? 'success' : 'failure'}`;
+    item.innerHTML = `
+      <div class="history-attempt-num">
+        第 ${num} 次尝试
+        <span class="history-result-tag ${attempt.success ? 'pass' : 'fail'}">${attempt.success ? '成功' : '失败'}</span>
+      </div>
+      <div class="history-choices">
+        负极：${attempt.negName} &nbsp;|&nbsp; 正极：${attempt.posName} &nbsp;|&nbsp; 溶液：${attempt.solName}
+      </div>
+      <div class="history-feedback">${attempt.feedback}</div>
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ══════════ Init ══════════
+// Load config from localStorage if teacher has set it
+const savedConfig = localStorage.getItem('galvanic_lab_config');
+if (savedConfig) {
+  const cfg = JSON.parse(savedConfig);
+  if (cfg.maxAttempts) CONFIG.maxAttempts = cfg.maxAttempts;
+  if (cfg.cooldownSeconds) CONFIG.cooldownSeconds = cfg.cooldownSeconds;
+  if (cfg.totalGroups) CONFIG.totalGroups = cfg.totalGroups;
+}
+document.getElementById('cooldownDisplay').textContent = CONFIG.cooldownSeconds + 's';
+
+initGroupScreen();
+
+// Question functions removed — handled in second script block after DOM
+</script>
+
+<!-- Question FAB -->
+<div id="qFabWrapper" style="position:fixed;bottom:2rem;right:2rem;z-index:99999;">
+  <button type="button" id="qFabBtn" style="
+    width:60px;height:60px;border-radius:50%;
+    border:2px solid rgba(74,144,217,0.5);
+    background:linear-gradient(135deg,#4a90d9,#3a7bc8);
+    color:white;cursor:pointer;
+    box-shadow:0 4px 25px rgba(74,144,217,0.5);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  ">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-3 12H7v-2h10v2zm0-3H7V9h10v2zm0-3H7V6h10v2z" fill="currentColor"/></svg>
+  </button>
+</div>
+
+<!-- Question Modal -->
+<div id="questionModal" style="
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);
+  display:none;align-items:center;justify-content:center;
+  z-index:100;backdrop-filter:blur(5px);
+">
+  <div style="background:#0d1220;border:1px solid rgba(255,255,255,0.07);border-radius:16px;width:420px;padding:1.8rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem;padding-bottom:.8rem;border-bottom:1px solid rgba(255,255,255,0.07)">
+      <div style="font-family:'Noto Serif SC',serif;font-size:1.1rem;font-weight:600">向老师提问</div>
+      <button id="qClose" onclick="document.getElementById('questionModal').style.display='none'" style="width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:transparent;color:rgba(255,255,255,0.45);cursor:pointer;font-size:1.2rem">&times;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem">
+      <div><label style="font-size:.7rem;color:rgba(255,255,255,0.45);display:block;margin-bottom:.3rem">姓名 *</label><input id="qName" style="width:100%;padding:.5rem .7rem;border:1px solid rgba(255,255,255,0.07);border-radius:8px;background:rgba(255,255,255,0.035);color:#e4e6ec;font-size:.85rem;font-family:inherit;outline:none" placeholder="你的姓名"></div>
+      <div><label style="font-size:.7rem;color:rgba(255,255,255,0.45);display:block;margin-bottom:.3rem">学号</label><input id="qSid" style="width:100%;padding:.5rem .7rem;border:1px solid rgba(255,255,255,0.07);border-radius:8px;background:rgba(255,255,255,0.035);color:#e4e6ec;font-size:.85rem;font-family:inherit;outline:none" placeholder="选填"></div>
+    </div>
+    <div style="margin-bottom:.6rem"><label style="font-size:.7rem;color:rgba(255,255,255,0.45);display:block;margin-bottom:.3rem">组别</label><input id="qGroup" style="width:100%;padding:.5rem .7rem;border:1px solid rgba(255,255,255,0.07);border-radius:8px;background:rgba(255,255,255,0.035);color:#e4e6ec;font-size:.85rem;font-family:inherit;outline:none" placeholder="第几组"></div>
+    <div style="margin-bottom:1rem"><label style="font-size:.7rem;color:rgba(255,255,255,0.45);display:block;margin-bottom:.3rem">问题内容 *</label><textarea id="qContent" rows="3" style="width:100%;padding:.5rem .7rem;border:1px solid rgba(255,255,255,0.07);border-radius:8px;background:rgba(255,255,255,0.035);color:#e4e6ec;font-size:.85rem;font-family:inherit;outline:none;resize:vertical" placeholder="请输入你的问题..."></textarea></div>
+    <button id="qSubmit" style="width:100%;padding:.7rem;border:none;border-radius:10px;background:linear-gradient(135deg,#4a90d9,#3a7bc8);color:white;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;">发送提问</button>
+  </div>
+</div>
+<!-- CSS class no longer needed, using direct style.display -->
+
+<script>
+// Question system — uses multiple fallback methods
+(function(){
+  var fab = document.getElementById('qFabBtn');
+  var modal = document.getElementById('questionModal');
+  var closeBtn = document.getElementById('qClose');
+  var submitBtn = document.getElementById('qSubmit');
+
+  if (!fab) { console.error('FAB button not found!'); return; }
+  if (!modal) { console.error('Question modal not found!'); return; }
+
+  function openModal() {
+    modal.style.display = 'flex';
+  }
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  // Multiple event binding for maximum compatibility
+  fab.onclick = openModal;
+  fab.addEventListener('click', openModal);
+  fab.addEventListener('touchend', function(e) { e.preventDefault(); openModal(); });
+
+  if (closeBtn) {
+    closeBtn.onclick = closeModal;
+  }
+
+  // Click outside modal to close
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+
+  if (submitBtn) {
+    submitBtn.onclick = function() {
+      var name = document.getElementById('qName').value.trim();
+      var sid = document.getElementById('qSid').value.trim();
+      var group = document.getElementById('qGroup').value.trim();
+      var content = document.getElementById('qContent').value.trim();
+      if (!name || !content) { alert('请填写姓名和问题内容'); return; }
+
+      var qData = { name: name, sid: sid, group: group, content: content, time: Date.now(), timeStr: new Date().toLocaleString('zh-CN') };
+      var questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+      questions.push(qData);
+      localStorage.setItem('galvanic_questions', JSON.stringify(questions));
+
+      fetch(window.location.origin + '/api/questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(qData)
+      }).catch(function(){});
+
+      document.getElementById('qContent').value = '';
+      closeModal();
+
+      var toast = document.createElement('div');
+      toast.textContent = '提问已发送！';
+      toast.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);padding:.6rem 1.5rem;background:rgba(92,184,92,0.15);border:1px solid rgba(92,184,92,0.3);color:#5cb85c;border-radius:10px;font-size:.82rem;z-index:200;';
+      document.body.appendChild(toast);
+      setTimeout(function(){ toast.remove(); }, 2000);
+    };
+  }
+
+  console.log('Question system initialized OK. FAB:', !!fab, 'Modal:', !!modal);
+})();
+</script>
+
+</body>
+</html>

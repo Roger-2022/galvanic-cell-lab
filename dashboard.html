@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>教师监控面板 — 原电池探究平台</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #080c16;
+    --bg-panel: rgba(255,255,255,0.035);
+    --border: rgba(255,255,255,0.07);
+    --text: #e4e6ec;
+    --text-dim: rgba(255,255,255,0.45);
+    --blue: #4a90d9;
+    --cyan: #5cc4c4;
+    --green: #5cb85c;
+    --red: #d9534f;
+    --gold: #c9a84c;
+    --purple: #9b7ed8;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Noto Sans SC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* ── Login Screen ── */
+  .login-screen {
+    width: 100%; height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.5rem;
+  }
+
+  .login-screen.hidden { display: none; }
+
+  .login-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem; font-weight: 600;
+    background: linear-gradient(135deg, #e4e6ec, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.06em;
+  }
+
+  .login-subtitle { color: var(--text-dim); font-size: 0.82rem; margin-top: -0.8rem; }
+
+  .login-form { display: flex; gap: 0.6rem; align-items: center; }
+
+  .login-input {
+    width: 320px;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg-panel);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .login-input:focus { border-color: var(--gold); }
+
+  .login-btn {
+    padding: 0.7rem 1.5rem;
+    border: none; border-radius: 10px;
+    background: linear-gradient(135deg, var(--gold), #b8942f);
+    color: var(--bg);
+    font-size: 0.85rem; font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s;
+  }
+  .login-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .login-error {
+    color: var(--red);
+    font-size: 0.78rem;
+    height: 1.2em;
+  }
+
+  .login-back {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    text-decoration: none;
+  }
+  .login-back:hover { color: var(--text); }
+
+  /* ── Main App ── */
+  .app {
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  .app.visible { display: flex; }
+
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 1.5rem; height: 56px;
+    background: rgba(0,0,0,0.3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 1rem; }
+
+  .back-btn {
+    display: flex; align-items: center; gap: 0.4rem;
+    color: var(--text-dim); text-decoration: none;
+    font-size: 0.8rem; padding: 0.4rem 0.8rem;
+    border-radius: 6px; transition: all 0.2s;
+  }
+  .back-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  .topbar-title { font-family: 'Noto Serif SC', serif; font-size: 1.05rem; font-weight: 600; letter-spacing: 0.06em; }
+
+  .topbar-badge {
+    font-size: 0.65rem; padding: 0.2rem 0.6rem; border-radius: 10px;
+    background: rgba(201,168,76,0.1); color: var(--gold);
+    border: 1px solid rgba(201,168,76,0.2);
+  }
+
+  .topbar-actions { display: flex; gap: 0.5rem; }
+
+  .action-btn {
+    padding: 0.4rem 1rem; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg-panel); color: var(--text);
+    font-size: 0.78rem; cursor: pointer; transition: all 0.2s; font-family: inherit;
+  }
+  .action-btn:hover { border-color: var(--gold); background: rgba(201,168,76,0.06); }
+  .action-btn.primary { background: rgba(74,144,217,0.1); border-color: rgba(74,144,217,0.3); color: var(--blue); }
+  .action-btn.primary:hover { background: rgba(74,144,217,0.15); }
+  .action-btn.danger:hover { border-color: var(--red); background: rgba(217,83,79,0.06); color: var(--red); }
+
+  .stats-bar {
+    display: flex; gap: 1.5rem; padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.15);
+  }
+
+  .stat-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.8rem 1.2rem; min-width: 130px;
+  }
+  .stat-card-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 0.08em; margin-bottom: 0.3rem; }
+  .stat-card-value { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-card-sub { font-size: 0.68rem; color: var(--text-dim); margin-top: 0.1rem; }
+
+  .config-panel {
+    display: none; padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border); background: rgba(201,168,76,0.02);
+  }
+  .config-panel.visible { display: flex; gap: 1.5rem; align-items: flex-end; }
+
+  .config-field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .config-field label { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.05em; }
+  .config-field input {
+    width: 100px; padding: 0.5rem 0.7rem; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--bg-panel); color: var(--text);
+    font-size: 0.85rem; font-family: inherit; outline: none;
+  }
+  .config-field input:focus { border-color: var(--gold); }
+
+  .config-save {
+    padding: 0.5rem 1.2rem; border: none; border-radius: 8px;
+    background: var(--gold); color: var(--bg);
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+
+  .groups-container { flex: 1; padding: 1.5rem; }
+
+  .groups-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;
+  }
+
+  .group-card {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1rem 1.2rem; transition: all 0.3s;
+  }
+  .group-card.success { border-color: rgba(92,184,92,0.3); background: rgba(92,184,92,0.03); }
+  .group-card.failed { border-color: rgba(217,83,79,0.2); background: rgba(217,83,79,0.02); }
+  .group-card.inactive { opacity: 0.4; }
+
+  .group-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .group-card-id { font-weight: 600; font-size: 0.95rem; }
+
+  .group-card-status {
+    font-size: 0.65rem; padding: 0.2rem 0.5rem; border-radius: 6px; font-weight: 600;
+  }
+  .status-success { background: rgba(92,184,92,0.15); color: var(--green); }
+  .status-active { background: rgba(74,144,217,0.15); color: var(--blue); }
+  .status-failed { background: rgba(217,83,79,0.15); color: var(--red); }
+  .status-idle { background: rgba(255,255,255,0.05); color: var(--text-dim); }
+
+  .group-card-progress { display: flex; gap: 0.3rem; margin-bottom: 0.6rem; }
+  .progress-dot { width: 28px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); }
+  .progress-dot.used { background: rgba(217,83,79,0.4); }
+  .progress-dot.success { background: rgba(92,184,92,0.5); }
+
+  .group-card-attempts { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.4rem; }
+  .group-card-last {
+    font-size: 0.7rem; color: var(--text-dim);
+    background: rgba(0,0,0,0.2); border-radius: 6px; padding: 0.5rem 0.6rem; line-height: 1.5;
+  }
+
+  .group-card-actions { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
+  .group-action-btn {
+    font-size: 0.68rem; padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; font-family: inherit; transition: all 0.2s;
+  }
+  .group-action-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); background: rgba(255,255,255,0.03); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; backdrop-filter: blur(5px);
+  }
+  .modal-overlay.visible { display: flex; }
+
+  .modal {
+    background: #0d1220; border: 1px solid var(--border);
+    border-radius: 16px; width: 500px; max-height: 80vh;
+    overflow-y: auto; padding: 1.5rem;
+    animation: fadeSlideIn 0.3s ease-out;
+  }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; padding-bottom: 0.8rem; border-bottom: 1px solid var(--border);
+  }
+  .modal-title { font-family: 'Noto Serif SC', serif; font-size: 1.1rem; font-weight: 600; }
+  .modal-close {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-dim); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.05); color: var(--text); }
+
+  .modal-attempt {
+    background: var(--bg-panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.7rem 0.9rem; margin-bottom: 0.5rem;
+    font-size: 0.8rem; line-height: 1.6;
+  }
+  .modal-attempt.success { border-color: rgba(92,184,92,0.2); }
+  .modal-attempt .attempt-header {
+    display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-weight: 600;
+  }
+
+  .refresh-indicator {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.7rem; color: var(--text-dim);
+  }
+  .refresh-dot {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+    animation: blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN SCREEN ══════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-title">教师监控面板</div>
+  <div class="login-subtitle">请输入教师密码以进入监控面板</div>
+  <div class="login-form">
+    <input type="password" class="login-input" id="pwdInput" placeholder="请输入密码" autocomplete="off"
+           onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">进入</button>
+  </div>
+  <div class="login-error" id="loginError"></div>
+  <a href="index.html" class="login-back">← 返回主页</a>
+</div>
+
+<!-- ══════════ MAIN APP ══════════ -->
+<div class="app" id="mainApp">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        返回
+      </a>
+      <div class="topbar-title">教师监控面板</div>
+      <div class="topbar-badge">实时监控</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:1.5rem;">
+      <div class="refresh-indicator">
+        <div class="refresh-dot"></div>
+        <span>每2秒自动刷新</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="action-btn primary" onclick="exportExcel()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle;margin-right:4px"><path d="M7 2v7M4 6l3 3 3-3M3 11h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          导出 Excel
+        </button>
+        <button class="action-btn" onclick="toggleConfig()">参数设置</button>
+        <button class="action-btn" onclick="resetAllGroups()">全部重置</button>
+        <button class="action-btn danger" onclick="clearAllData()">清除数据</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-card-label">已开始</div>
+      <div class="stat-card-value" id="statStarted">0</div>
+      <div class="stat-card-sub">/ <span id="statTotal">15</span> 组</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">已成功</div>
+      <div class="stat-card-value" id="statSuccess" style="color:var(--green)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">已失败</div>
+      <div class="stat-card-value" id="statFailed" style="color:var(--red)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">进行中</div>
+      <div class="stat-card-value" id="statActive" style="color:var(--blue)">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">平均尝试</div>
+      <div class="stat-card-value" id="statAvgAttempts">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card-label">成功率</div>
+      <div class="stat-card-value" id="statRate">—</div>
+    </div>
+  </div>
+
+  <div class="config-panel" id="configPanel">
+    <div class="config-field">
+      <label>最大尝试次数</label>
+      <input type="number" id="cfgMaxAttempts" value="5" min="1" max="20">
+    </div>
+    <div class="config-field">
+      <label>冷却时间（秒）</label>
+      <input type="number" id="cfgCooldown" value="30" min="5" max="120">
+    </div>
+    <div class="config-field">
+      <label>小组数量</label>
+      <input type="number" id="cfgGroups" value="15" min="1" max="30">
+    </div>
+    <button class="config-save" onclick="saveConfig()">保存设置</button>
+  </div>
+
+  <!-- Questions Section -->
+  <div style="padding:0 1.5rem 0.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.1)">
+    <div style="display:flex;align-items:center;gap:1rem;padding:.8rem 0">
+      <span style="font-family:'Noto Serif SC',serif;font-size:.95rem;font-weight:600">学生提问</span>
+      <span id="qBadge" style="font-size:.65rem;padding:.15rem .5rem;border-radius:8px;background:rgba(74,144,217,0.1);color:#4a90d9;border:1px solid rgba(74,144,217,0.2)">0 条</span>
+    </div>
+    <div style="display:flex;gap:.5rem">
+      <button class="action-btn primary" onclick="exportQuestions()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style="vertical-align:middle;margin-right:3px"><path d="M7 2v7M4 6l3 3 3-3M3 11h8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        导出提问
+      </button>
+      <button class="action-btn danger" onclick="clearQuestions()">清除所有提问</button>
+    </div>
+  </div>
+  <div id="questionsPanel" style="max-height:200px;overflow-y:auto;padding:.8rem 1.5rem;background:rgba(0,0,0,0.05);border-bottom:1px solid rgba(255,255,255,0.07)">
+    <div id="questionsList" style="display:flex;flex-direction:column;gap:.4rem"></div>
+  </div>
+
+  <div class="groups-container">
+    <div class="groups-grid" id="groupsGrid"></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">详细记录</div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════ PASSWORD AUTH (SHA-256 hash comparison) ═══════════
+// Password is stored as SHA-256 hash only — plaintext never appears in source
+const _h = '7242b6f4c20a365dacea8e288f584e145db6cb57fb1472c49e7cf8db260a71e4';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function doLogin() {
+  const pwd = document.getElementById('pwdInput').value;
+  if (!pwd) { document.getElementById('loginError').textContent = '请输入密码'; return; }
+
+  const hash = await sha256(pwd);
+  if (hash === _h) {
+    sessionStorage.setItem('_auth', '1');
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('mainApp').classList.add('visible');
+    refreshDashboard();
+  } else {
+    document.getElementById('loginError').textContent = '密码错误，请重试';
+    document.getElementById('pwdInput').value = '';
+    document.getElementById('pwdInput').focus();
+  }
+}
+
+// Check if already authenticated in this session
+if (sessionStorage.getItem('_auth') === '1') {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('mainApp').classList.add('visible');
+}
+
+document.getElementById('pwdInput').focus();
+
+// ═══════════ CONFIG ═══════════
+let config = { maxAttempts: 5, cooldownSeconds: 30, totalGroups: 15 };
+const savedConfig = localStorage.getItem('galvanic_lab_config');
+if (savedConfig) Object.assign(config, JSON.parse(savedConfig));
+
+document.getElementById('cfgMaxAttempts').value = config.maxAttempts;
+document.getElementById('cfgCooldown').value = config.cooldownSeconds;
+document.getElementById('cfgGroups').value = config.totalGroups;
+
+function toggleConfig() { document.getElementById('configPanel').classList.toggle('visible'); }
+
+function saveConfig() {
+  config.maxAttempts = parseInt(document.getElementById('cfgMaxAttempts').value) || 5;
+  config.cooldownSeconds = parseInt(document.getElementById('cfgCooldown').value) || 30;
+  config.totalGroups = parseInt(document.getElementById('cfgGroups').value) || 15;
+  localStorage.setItem('galvanic_lab_config', JSON.stringify(config));
+  document.getElementById('configPanel').classList.remove('visible');
+  refreshDashboard();
+}
+
+// ═══════════ DATA (server + localStorage hybrid) ═══════════
+const API_BASE = window.location.origin;
+let useServer = false;
+let serverGroups = {};
+fetch(API_BASE + '/api/config').then(r => { if (r.ok) useServer = true; }).catch(() => {});
+
+function getGroupData(id) {
+  // Prefer server data if available
+  if (useServer && serverGroups[id]) return serverGroups[id];
+  const d = localStorage.getItem(`galvanic_lab_group_${id}`);
+  return d ? JSON.parse(d) : { attempts: [], attemptsUsed: 0, success: false };
+}
+
+// Periodically fetch all groups from server
+async function syncFromServer() {
+  if (!useServer) return;
+  try {
+    const res = await fetch(API_BASE + '/api/groups');
+    if (res.ok) {
+      const data = await res.json();
+      serverGroups = data.groups || {};
+    }
+  } catch {}
+  try {
+    const res = await fetch(API_BASE + '/api/questions');
+    if (res.ok) {
+      const qs = await res.json();
+      if (qs.length > 0) localStorage.setItem('galvanic_questions', JSON.stringify(qs));
+    }
+  } catch {}
+}
+
+// ═══════════ DASHBOARD ═══════════
+function refreshDashboard() {
+  const grid = document.getElementById('groupsGrid');
+  grid.innerHTML = '';
+
+  let started = 0, success = 0, failed = 0, active = 0;
+  let totalAttempts = 0, attemptedGroups = 0;
+  document.getElementById('statTotal').textContent = config.totalGroups;
+
+  for (let i = 1; i <= config.totalGroups; i++) {
+    const data = getGroupData(i);
+    let statusText = '未开始', statusClass = 'status-idle', cardClass = 'inactive';
+
+    if (data.attemptsUsed > 0) {
+      started++; attemptedGroups++; totalAttempts += data.attemptsUsed;
+      if (data.success) {
+        success++; statusText = '已成功'; statusClass = 'status-success'; cardClass = 'success';
+      } else if (data.attemptsUsed >= config.maxAttempts) {
+        failed++; statusText = '已失败'; statusClass = 'status-failed'; cardClass = 'failed';
+      } else {
+        active++; statusText = `进行中 (${data.attemptsUsed}/${config.maxAttempts})`; statusClass = 'status-active'; cardClass = '';
+      }
+    }
+
+    let progressDots = '';
+    for (let j = 0; j < config.maxAttempts; j++) {
+      if (j < data.attemptsUsed) {
+        progressDots += `<div class="progress-dot ${data.success && j === data.attemptsUsed - 1 ? 'success' : 'used'}"></div>`;
+      } else {
+        progressDots += '<div class="progress-dot"></div>';
+      }
+    }
+
+    let lastInfo = '<span style="opacity:0.4">暂无记录</span>';
+    if (data.attempts.length > 0) {
+      const last = data.attempts[data.attempts.length - 1];
+      lastInfo = `${last.negName} | ${last.posName} | ${last.solName}`;
+    }
+
+    const card = document.createElement('div');
+    card.className = `group-card ${cardClass}`;
+    card.innerHTML = `
+      <div class="group-card-header">
+        <div class="group-card-id">第 ${i} 组</div>
+        <div class="group-card-status ${statusClass}">${statusText}</div>
+      </div>
+      <div class="group-card-progress">${progressDots}</div>
+      <div class="group-card-attempts">已尝试 ${data.attemptsUsed} / ${config.maxAttempts} 次</div>
+      <div class="group-card-last">${lastInfo}</div>
+      <div class="group-card-actions">
+        <button class="group-action-btn" onclick="showDetail(${i})">查看详情</button>
+        <button class="group-action-btn" onclick="resetGroup(${i})">重置</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+
+  document.getElementById('statStarted').textContent = started;
+  document.getElementById('statSuccess').textContent = success;
+  document.getElementById('statFailed').textContent = failed;
+  document.getElementById('statActive').textContent = active;
+  document.getElementById('statAvgAttempts').textContent = attemptedGroups > 0 ? (totalAttempts / attemptedGroups).toFixed(1) : '—';
+  document.getElementById('statRate').textContent = started > 0 ? Math.round((success / started) * 100) + '%' : '—';
+}
+
+// ═══════════ ACTIONS ═══════════
+function resetGroup(id) {
+  if (!confirm(`确认重置第 ${id} 组？`)) return;
+  localStorage.removeItem(`galvanic_lab_group_${id}`);
+  if (useServer) fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}).catch(()=>{});
+  refreshDashboard();
+}
+
+function resetAllGroups() {
+  if (!confirm('确认重置所有小组？')) return;
+  for (let i = 1; i <= config.totalGroups; i++) localStorage.removeItem(`galvanic_lab_group_${i}`);
+  if (useServer) fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})}).catch(()=>{});
+  serverGroups = {};
+  refreshDashboard();
+}
+
+function clearAllData() {
+  if (!confirm('确认清除所有数据和设置？不可撤销。')) return;
+  for (let i = 1; i <= 30; i++) localStorage.removeItem(`galvanic_lab_group_${i}`);
+  localStorage.removeItem('galvanic_lab_config');
+  if (useServer) {
+    fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})}).catch(()=>{});
+    fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
+  }
+  location.reload();
+}
+
+// ═══════════ DETAIL MODAL ═══════════
+function showDetail(id) {
+  const data = getGroupData(id);
+  document.getElementById('modalTitle').textContent = `第 ${id} 组 · 详细记录`;
+  const body = document.getElementById('modalBody');
+
+  if (data.attempts.length === 0) {
+    body.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:2rem;">尚未开始实验</div>';
+  } else {
+    body.innerHTML = data.attempts.map((a, idx) => `
+      <div class="modal-attempt ${a.success ? 'success' : ''}">
+        <div class="attempt-header">
+          <span>第 ${idx + 1} 次尝试</span>
+          <span style="color:${a.success ? 'var(--green)' : 'var(--red)'}">${a.success ? '成功' : '失败'}</span>
+        </div>
+        <div style="color:var(--text-dim);margin-bottom:0.3rem;">负极：${a.negName} | 正极：${a.posName} | 溶液：${a.solName}</div>
+        <div style="color:var(--gold);font-size:0.78rem;">${a.feedback}</div>
+      </div>
+    `).join('');
+  }
+  document.getElementById('modalOverlay').classList.add('visible');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalOverlay')) return;
+  document.getElementById('modalOverlay').classList.remove('visible');
+}
+
+// ═══════════ EXPORT EXCEL ═══════════
+function exportExcel() {
+  // Sheet 1: Summary per group — includes ALL attempts (success + failures)
+  const summaryData = [['组号', '最终状态', '总尝试次数', '尝试序号', '结果', '负极材料', '正极材料', '电解质溶液', '失败原因', '时间']];
+
+  for (let i = 1; i <= config.totalGroups; i++) {
+    const data = getGroupData(i);
+    let status = '未开始';
+    if (data.success) status = '成功';
+    else if (data.attemptsUsed >= config.maxAttempts) status = '失败（用尽次数）';
+    else if (data.attemptsUsed > 0) status = '进行中';
+
+    if (data.attempts.length === 0) {
+      summaryData.push([`第${i}组`, status, 0, '—', '—', '—', '—', '—', '—', '—']);
+    } else {
+      data.attempts.forEach((a, idx) => {
+        summaryData.push([
+          `第${i}组`,
+          idx === 0 ? status : '', // only show status on first row
+          idx === 0 ? data.attemptsUsed : '',
+          `第${idx+1}次`,
+          a.success ? '成功' : '失败',
+          a.negName,
+          a.posName,
+          a.solName,
+          a.success ? '' : a.feedback,
+          a.timestamp ? new Date(a.timestamp).toLocaleString('zh-CN') : '—'
+        ]);
+      });
+    }
+  }
+
+  // Sheet 2: All attempts detail
+  const detailData = [['组号', '尝试序号', '负极材料', '正极材料', '电解质溶液', '结果', '反馈说明', '时间']];
+
+  for (let i = 1; i <= config.totalGroups; i++) {
+    const data = getGroupData(i);
+    data.attempts.forEach((a, idx) => {
+      detailData.push([
+        `第${i}组`,
+        idx + 1,
+        a.negName,
+        a.posName,
+        a.solName,
+        a.success ? '成功' : '失败',
+        a.feedback,
+        a.timestamp ? new Date(a.timestamp).toLocaleString('zh-CN') : '—'
+      ]);
+    });
+  }
+
+  // Sheet 3: Statistics
+  let started = 0, successCount = 0, failedCount = 0, totalAttempts = 0;
+  for (let i = 1; i <= config.totalGroups; i++) {
+    const data = getGroupData(i);
+    if (data.attemptsUsed > 0) {
+      started++;
+      totalAttempts += data.attemptsUsed;
+      if (data.success) successCount++;
+      else if (data.attemptsUsed >= config.maxAttempts) failedCount++;
+    }
+  }
+
+  const statsData = [
+    ['统计项', '数值'],
+    ['总组数', config.totalGroups],
+    ['已开始组数', started],
+    ['成功组数', successCount],
+    ['失败组数（用尽次数）', failedCount],
+    ['进行中组数', started - successCount - failedCount],
+    ['成功率', started > 0 ? (successCount / started * 100).toFixed(1) + '%' : '—'],
+    ['平均尝试次数', started > 0 ? (totalAttempts / started).toFixed(1) : '—'],
+    ['总尝试次数', totalAttempts],
+    ['最大允许尝试次数', config.maxAttempts],
+    ['冷却时间(秒)', config.cooldownSeconds],
+    ['导出时间', new Date().toLocaleString('zh-CN')],
+  ];
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+
+  const ws1 = XLSX.utils.aoa_to_sheet(summaryData);
+  ws1['!cols'] = [{wch:8},{wch:14},{wch:12},{wch:10},{wch:8},{wch:12},{wch:12},{wch:14},{wch:50},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws1, '各组总览');
+
+  const ws2 = XLSX.utils.aoa_to_sheet(detailData);
+  ws2['!cols'] = [{wch:8},{wch:10},{wch:12},{wch:12},{wch:14},{wch:8},{wch:50},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws2, '详细记录');
+
+  const ws3 = XLSX.utils.aoa_to_sheet(statsData);
+  ws3['!cols'] = [{wch:22},{wch:15}];
+  XLSX.utils.book_append_sheet(wb, ws3, '统计数据');
+
+  // Download
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
+  XLSX.writeFile(wb, `原电池实验数据_${dateStr}.xlsx`);
+}
+
+// ═══════════ QUESTIONS ═══════════
+function refreshQuestions() {
+  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  document.getElementById('qBadge').textContent = questions.length + ' 条';
+  const list = document.getElementById('questionsList');
+  if (questions.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);font-size:.78rem;padding:.5rem">暂无学生提问</div>';
+    return;
+  }
+  list.innerHTML = [...questions].reverse().map((q, i) => `
+    <div style="display:flex;gap:.8rem;align-items:flex-start;padding:.6rem .8rem;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;font-size:.78rem">
+      <div style="flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(74,144,217,0.1);border:1px solid rgba(74,144,217,0.2);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#4a90d9">${questions.length-i}</div>
+      <div style="flex:1;min-width:0">
+        <div style="color:rgba(255,255,255,0.4);font-size:.68rem;margin-bottom:.2rem">
+          <strong style="color:rgba(255,255,255,0.65)">${q.name}</strong>
+          ${q.sid ? ' · '+q.sid : ''}
+          ${q.group ? ' · '+q.group : ''}
+          <span style="float:right">${q.timeStr || '—'}</span>
+        </div>
+        <div style="color:rgba(255,255,255,0.7);line-height:1.5">${q.content}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function clearQuestions() {
+  if (!confirm('确认清除所有学生提问？')) return;
+  localStorage.removeItem('galvanic_questions');
+  localStorage.setItem('galvanic_questions_update', Date.now().toString());
+  if (useServer) fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
+  refreshQuestions();
+}
+
+function exportQuestions() {
+  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  if (questions.length === 0) { alert('暂无提问数据'); return; }
+  const data = [['序号','姓名','学号','组别','问题内容','提问时间']];
+  questions.forEach((q, i) => {
+    data.push([i+1, q.name, q.sid||'—', q.group||'—', q.content, q.timeStr||'—']);
+  });
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:6},{wch:10},{wch:12},{wch:8},{wch:50},{wch:20}];
+  XLSX.utils.book_append_sheet(wb, ws, '学生提问');
+  const now = new Date();
+  const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}_${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}`;
+  XLSX.writeFile(wb, `学生提问_${dateStr}.xlsx`);
+}
+
+// ═══════════ INIT ═══════════
+if (sessionStorage.getItem('_auth') === '1') { syncFromServer().then(() => { refreshDashboard(); refreshQuestions(); }); }
+setInterval(async () => {
+  if (sessionStorage.getItem('_auth') === '1') {
+    await syncFromServer();
+    refreshDashboard();
+    refreshQuestions();
+  }
+}, 2000);
+</script>
+
+</body>
+</html>

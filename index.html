@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>原电池探究平台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    overflow: hidden;
+    color: #e8eaf0;
+  }
+
+  /* ── Gradient background ── */
+  body {
+    background: linear-gradient(160deg, #040818 0%, #0a1628 25%, #0d1f3c 50%, #0a1a35 75%, #060e20 100%);
+  }
+
+  /* ── Floating chemistry icons canvas ── */
+  #bgCanvas {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Overlay gradients for depth ── */
+  .overlay-top {
+    position: fixed; top: 0; left: 0; right: 0; height: 30%;
+    background: linear-gradient(180deg, rgba(4,8,24,0.6) 0%, transparent 100%);
+    z-index: 1; pointer-events: none;
+  }
+  .overlay-bottom {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 25%;
+    background: linear-gradient(0deg, rgba(4,8,24,0.7) 0%, transparent 100%);
+    z-index: 1; pointer-events: none;
+  }
+
+  /* ── Main ── */
+  .main-container {
+    position: relative; z-index: 2;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem;
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+    animation: fadeInDown 1s ease-out;
+  }
+
+  .header-label {
+    font-size: 0.72rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #4a90d9, #5cc4c4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.8rem;
+  }
+
+  .header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 3rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ffffff 0%, #a8d4f0 30%, #5cc4c4 60%, #4a90d9 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    text-shadow: 0 0 80px rgba(92,196,196,0.15);
+  }
+
+  .header-sub {
+    margin-top: 0.8rem;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.4);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+  }
+
+  .header-divider {
+    width: 80px; height: 2px;
+    background: linear-gradient(90deg, transparent, #4a90d9, #5cc4c4, transparent);
+    margin: 1.4rem auto 0;
+    border-radius: 1px;
+  }
+
+  /* ── Cards ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.8rem;
+    max-width: 1100px;
+    width: 100%;
+    animation: fadeInUp 1s ease-out 0.3s both;
+  }
+
+  .card {
+    position: relative;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 20px;
+    padding: 2.8rem 2rem 2.2rem;
+    cursor: pointer;
+    transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 20px;
+    background: radial-gradient(ellipse at 50% -20%, var(--card-glow, rgba(74,144,217,0.12)), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.45s;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, transparent 40%, var(--card-accent, rgba(74,144,217,0.15)) 50%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.45s;
+    z-index: -1;
+  }
+
+  .card:hover::before { opacity: 1; }
+  .card:hover::after { opacity: 1; }
+  .card:hover {
+    border-color: var(--card-accent, rgba(74,144,217,0.3));
+    transform: translateY(-6px);
+    box-shadow:
+      0 20px 60px rgba(0,0,0,0.4),
+      0 0 40px var(--card-glow, rgba(74,144,217,0.06));
+  }
+
+  .card:active { transform: translateY(-3px) scale(0.98); }
+
+  .card--model {
+    --card-accent: rgba(92,196,196,0.3);
+    --card-glow: rgba(92,196,196,0.1);
+  }
+  .card--lab {
+    --card-accent: rgba(74,144,217,0.3);
+    --card-glow: rgba(74,144,217,0.1);
+  }
+  .card--dashboard {
+    --card-accent: rgba(201,168,76,0.3);
+    --card-glow: rgba(201,168,76,0.08);
+  }
+
+  .card-icon {
+    width: 68px; height: 68px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.6rem;
+    position: relative; z-index: 1;
+  }
+
+  .card--model .card-icon {
+    background: linear-gradient(135deg, rgba(92,196,196,0.12), rgba(92,196,196,0.03));
+    border: 1px solid rgba(92,196,196,0.18);
+    box-shadow: 0 0 30px rgba(92,196,196,0.06);
+  }
+  .card--lab .card-icon {
+    background: linear-gradient(135deg, rgba(74,144,217,0.12), rgba(74,144,217,0.03));
+    border: 1px solid rgba(74,144,217,0.18);
+    box-shadow: 0 0 30px rgba(74,144,217,0.06);
+  }
+  .card--dashboard .card-icon {
+    background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.03));
+    border: 1px solid rgba(201,168,76,0.18);
+    box-shadow: 0 0 30px rgba(201,168,76,0.06);
+  }
+
+  .card-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    position: relative; z-index: 1;
+    letter-spacing: 0.05em;
+  }
+
+  .card-desc {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.4);
+    line-height: 1.7;
+    position: relative; z-index: 1;
+  }
+
+  .card-tag {
+    display: inline-block;
+    margin-top: 1.3rem;
+    padding: 0.3rem 1rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    position: relative; z-index: 1;
+    font-weight: 500;
+  }
+
+  .card--model .card-tag {
+    background: rgba(92,196,196,0.08);
+    color: #5cc4c4;
+    border: 1px solid rgba(92,196,196,0.15);
+  }
+  .card--lab .card-tag {
+    background: rgba(74,144,217,0.08);
+    color: #4a90d9;
+    border: 1px solid rgba(74,144,217,0.15);
+  }
+  .card--dashboard .card-tag {
+    background: rgba(201,168,76,0.08);
+    color: #c9a84c;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    position: fixed; bottom: 1.5rem;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.1em;
+    z-index: 2;
+    animation: fadeIn 1s ease-out 1s both;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-25px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(35px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 0.25; }
+  }
+
+  @media (max-width: 900px) {
+    .cards-grid { grid-template-columns: 1fr; max-width: 400px; }
+    .header h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="overlay-top"></div>
+<div class="overlay-bottom"></div>
+<canvas id="bgCanvas"></canvas>
+
+<div class="main-container">
+  <div class="header">
+    <div class="header-label">AI-Empowered Chemistry</div>
+    <h1>原电池探究平台</h1>
+    <p class="header-sub">化学反应能量转化的重要应用 — 化学电池</p>
+    <div class="header-divider"></div>
+  </div>
+
+  <div class="cards-grid">
+    <a href="model.html" class="card card--model">
+      <div class="card-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <circle cx="16" cy="16" r="12" stroke="#5cc4c4" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="16" cy="16" r="6" stroke="#5cc4c4" stroke-width="1.5"/>
+          <circle cx="16" cy="10" r="2.5" fill="#5cc4c4"/>
+          <circle cx="21" cy="19" r="2" fill="#5cc4c4" opacity="0.7"/>
+          <circle cx="11" cy="19" r="2" fill="#5cc4c4" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="card-title">微观模型讲解</div>
+      <div class="card-desc">交互式微观动画，逐步拆解原电池四大构成要素，教师可控分步演示</div>
+      <div class="card-tag">助教</div>
+    </a>
+
+    <a href="lab.html" class="card card--lab">
+      <div class="card-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <path d="M12 6V14L6 26H26L20 14V6" stroke="#4a90d9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="10" y1="6" x2="22" y2="6" stroke="#4a90d9" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="14" cy="20" r="1.5" fill="#4a90d9" opacity="0.6"/>
+          <circle cx="19" cy="22" r="1" fill="#4a90d9" opacity="0.4"/>
+          <circle cx="16" cy="18" r="1" fill="#4a90d9" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="card-title">虚拟实验室</div>
+      <div class="card-desc">小组协作设计原电池，选择材料点亮灯泡，失败反思迭代优化</div>
+      <div class="card-tag">助学</div>
+    </a>
+
+    <a href="dashboard.html" class="card card--dashboard">
+      <div class="card-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+          <rect x="6" y="6" width="8" height="8" rx="2" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/>
+          <rect x="18" y="6" width="8" height="8" rx="2" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/>
+          <rect x="6" y="18" width="8" height="8" rx="2" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/>
+          <rect x="18" y="18" width="8" height="8" rx="2" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/>
+          <circle cx="10" cy="10" r="1.5" fill="#c9a84c" opacity="0.5"/>
+          <circle cx="22" cy="10" r="1.5" fill="#c9a84c" opacity="0.5"/>
+        </svg>
+      </div>
+      <div class="card-title">教师监控面板</div>
+      <div class="card-desc">实时查看各小组进度，管理尝试次数与冷却时间，一键重置</div>
+      <div class="card-tag">助评</div>
+    </a>
+  </div>
+</div>
+
+<div class="footer">人大附中 · 化学学科 · 周兆筱@hlt</div>
+
+<script>
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Chemistry equipment SVG paths (drawn as line art)
+const chemIcons = [
+  // Erlenmeyer flask (锥形瓶)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.moveTo(-6*s, -12*s); ctx.lineTo(6*s, -12*s); // top rim
+    ctx.moveTo(-4*s, -12*s); ctx.lineTo(-4*s, -4*s); ctx.lineTo(-12*s, 12*s); ctx.lineTo(12*s, 12*s); ctx.lineTo(4*s, -4*s); ctx.lineTo(4*s, -12*s);
+    ctx.stroke();
+  },
+  // Beaker (烧杯)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.moveTo(-10*s, -12*s); ctx.lineTo(-10*s, 12*s); ctx.lineTo(10*s, 12*s); ctx.lineTo(10*s, -12*s);
+    ctx.moveTo(-10*s, -4*s); ctx.lineTo(10*s, -4*s); // liquid level
+    // Spout
+    ctx.moveTo(10*s, -12*s); ctx.lineTo(13*s, -10*s);
+    ctx.stroke();
+  },
+  // Round-bottom flask (圆底烧瓶)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.moveTo(-3*s, -14*s); ctx.lineTo(3*s, -14*s); // neck top
+    ctx.moveTo(-3*s, -14*s); ctx.lineTo(-3*s, -6*s); // neck left
+    ctx.moveTo(3*s, -14*s); ctx.lineTo(3*s, -6*s); // neck right
+    ctx.arc(0, 0, 10*s, -0.6, Math.PI + 0.6); // body
+    ctx.stroke();
+  },
+  // Test tube (试管)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.moveTo(-3*s, -14*s); ctx.lineTo(-3*s, 8*s);
+    ctx.arc(0, 8*s, 3*s, Math.PI, 0);
+    ctx.lineTo(3*s, -14*s);
+    ctx.moveTo(-4*s, -12*s); ctx.lineTo(4*s, -12*s); // rim
+    ctx.stroke();
+  },
+  // Alcohol lamp (酒精灯)
+  (ctx, s) => {
+    ctx.beginPath();
+    // Body
+    ctx.moveTo(-8*s, 10*s); ctx.lineTo(-6*s, -2*s); ctx.lineTo(6*s, -2*s); ctx.lineTo(8*s, 10*s);
+    ctx.closePath();
+    ctx.stroke();
+    // Wick tube
+    ctx.beginPath();
+    ctx.moveTo(-2*s, -2*s); ctx.lineTo(-2*s, -8*s);
+    ctx.moveTo(2*s, -2*s); ctx.lineTo(2*s, -8*s);
+    ctx.stroke();
+    // Flame
+    ctx.beginPath();
+    ctx.moveTo(0, -8*s);
+    ctx.quadraticCurveTo(-4*s, -12*s, 0, -16*s);
+    ctx.quadraticCurveTo(4*s, -12*s, 0, -8*s);
+    ctx.stroke();
+  },
+  // Molecule (分子结构)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.arc(0, 0, 4*s, 0, Math.PI*2);
+    ctx.moveTo(4*s, 0); ctx.lineTo(10*s, -6*s);
+    ctx.moveTo(10*s, -6*s); ctx.arc(10*s, -6*s, 3*s, 0, Math.PI*2);
+    ctx.moveTo(-4*s, 0); ctx.lineTo(-8*s, 6*s);
+    ctx.moveTo(-8*s, 6*s); ctx.arc(-8*s, 6*s, 3*s, 0, Math.PI*2);
+    ctx.moveTo(0, 4*s); ctx.lineTo(0, 10*s);
+    ctx.moveTo(0, 10*s); ctx.arc(0, 10*s, 2.5*s, 0, Math.PI*2);
+    ctx.stroke();
+  },
+  // Atom (原子)
+  (ctx, s) => {
+    ctx.beginPath();
+    ctx.arc(0, 0, 3*s, 0, Math.PI*2); // nucleus
+    ctx.stroke();
+    // Orbits
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10*s, 4*s, 0, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10*s, 4*s, Math.PI/3, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10*s, 4*s, -Math.PI/3, 0, Math.PI*2);
+    ctx.stroke();
+  },
+  // Battery (电池)
+  (ctx, s) => {
+    ctx.beginPath();
+    // Long plate
+    ctx.moveTo(-2*s, -10*s); ctx.lineTo(-2*s, 10*s);
+    ctx.moveTo(2*s, -10*s); ctx.lineTo(2*s, 10*s);
+    // Short plate
+    ctx.moveTo(6*s, -6*s); ctx.lineTo(6*s, 6*s);
+    ctx.moveTo(10*s, -10*s); ctx.lineTo(10*s, 10*s);
+    // Connectors
+    ctx.moveTo(-2*s, 0); ctx.lineTo(-8*s, 0);
+    ctx.moveTo(10*s, 0); ctx.lineTo(16*s, 0);
+    // + -
+    ctx.stroke();
+  },
+];
+
+class ChemParticle {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = Math.random() * canvas.width;
+    this.y = init ? Math.random() * canvas.height : canvas.height + 30;
+    this.vy = -(0.15 + Math.random() * 0.35);
+    this.vx = (Math.random() - 0.5) * 0.15;
+    this.scale = 0.6 + Math.random() * 0.8;
+    this.alpha = 0.03 + Math.random() * 0.05;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.003;
+    this.icon = Math.floor(Math.random() * chemIcons.length);
+    this.wobblePhase = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.005 + Math.random() * 0.01;
+  }
+  update() {
+    this.y += this.vy;
+    this.x += this.vx + Math.sin(this.wobblePhase) * 0.08;
+    this.rotation += this.rotSpeed;
+    this.wobblePhase += this.wobbleSpeed;
+    if (this.y < -40) this.reset(false);
+  }
+  draw() {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    ctx.globalAlpha = this.alpha;
+    ctx.strokeStyle = 'rgba(120,180,220,1)';
+    ctx.lineWidth = 1;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    chemIcons[this.icon](ctx, this.scale);
+    ctx.restore();
+  }
+}
+
+// Small connection particles (subtle dots)
+class DotParticle {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = Math.random() * canvas.width;
+    this.y = init ? Math.random() * canvas.height : canvas.height + 10;
+    this.vy = -(0.1 + Math.random() * 0.2);
+    this.r = Math.random() * 1.5 + 0.5;
+    this.alpha = Math.random() * 0.12 + 0.02;
+    this.color = Math.random() > 0.5 ? '92,196,196' : '74,144,217';
+  }
+  update() {
+    this.y += this.vy;
+    this.x += (Math.random() - 0.5) * 0.2;
+    if (this.y < -10) this.reset(false);
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${this.color},${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+const chemParticles = Array.from({ length: 18 }, () => new ChemParticle());
+const dotParticles = Array.from({ length: 40 }, () => new DotParticle());
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw subtle dot connections
+  dotParticles.forEach(p => { p.update(); p.draw(); });
+  for (let i = 0; i < dotParticles.length; i++) {
+    for (let j = i + 1; j < dotParticles.length; j++) {
+      const dx = dotParticles[i].x - dotParticles[j].x;
+      const dy = dotParticles[i].y - dotParticles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(dotParticles[i].x, dotParticles[i].y);
+        ctx.lineTo(dotParticles[j].x, dotParticles[j].y);
+        ctx.strokeStyle = `rgba(74,144,217,${0.02 * (1 - dist / 120)})`;
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // Draw chemistry icons
+  chemParticles.forEach(p => { p.update(); p.draw(); });
+
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ══════════ LIVE QUESTION BUBBLES ══════════
+let lastQCount = 0;
+const bubbleContainer = document.createElement('div');
+bubbleContainer.style.cssText = 'position:fixed;bottom:80px;right:30px;z-index:20;pointer-events:none;width:320px;display:flex;flex-direction:column-reverse;gap:6px;max-height:70vh;overflow:hidden';
+document.body.appendChild(bubbleContainer);
+
+// Heart/spark burst effect
+function spawnHearts(x, y) {
+  const colors = ['#ff6b8a','#ff8fa3','#4a90d9','#5cc4c4','#c9a84c','#ffcc44'];
+  const symbols = ['\u2764','\u2728','\u2b50','\u269b','\u2697','\u26a1'];
+  for (let i = 0; i < 8; i++) {
+    const heart = document.createElement('div');
+    heart.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    heart.style.cssText = `position:fixed;left:${x}px;top:${y}px;font-size:${14+Math.random()*10}px;z-index:25;pointer-events:none;opacity:1;transition:none;`;
+    document.body.appendChild(heart);
+    const angle = (Math.PI * 2 * i / 8) + (Math.random()-0.5)*0.5;
+    const dist = 40 + Math.random() * 60;
+    const tx = Math.cos(angle) * dist;
+    const ty = Math.sin(angle) * dist - 30;
+    let t = 0;
+    const anim = () => {
+      t += 0.03;
+      if (t > 1) { heart.remove(); return; }
+      const ease = 1 - (1-t)*(1-t);
+      heart.style.left = (x + tx * ease) + 'px';
+      heart.style.top = (y + ty * ease) + 'px';
+      heart.style.opacity = 1 - ease;
+      heart.style.transform = `scale(${1 - ease * 0.5}) rotate(${ease * 180}deg)`;
+      requestAnimationFrame(anim);
+    };
+    requestAnimationFrame(anim);
+  }
+}
+
+function showQuestionBubble(q) {
+  const bubble = document.createElement('div');
+  bubble.style.cssText = `
+    background:rgba(74,144,217,0.1);
+    border:1px solid rgba(74,144,217,0.2);
+    border-radius:12px;
+    padding:8px 12px;
+    backdrop-filter:blur(8px);
+    animation:bubbleIn .5s ease-out;
+    opacity:1;
+    transition:opacity 1s;
+  `;
+  bubble.innerHTML = `
+    <div style="font-size:.68rem;color:rgba(255,255,255,0.4);margin-bottom:2px">${q.name}${q.group ? ' · '+q.group : ''}</div>
+    <div style="font-size:.8rem;color:rgba(255,255,255,0.75);line-height:1.5">${q.content}</div>
+  `;
+  bubbleContainer.prepend(bubble);
+
+  // Burst hearts from the bubble area
+  const rect = bubbleContainer.getBoundingClientRect();
+  spawnHearts(rect.left + rect.width/2, rect.top);
+
+  // Fade out after 8 seconds
+  setTimeout(() => {
+    bubble.style.opacity = '0';
+    setTimeout(() => bubble.remove(), 1000);
+  }, 8000);
+
+  // Keep max 6 bubbles
+  while (bubbleContainer.children.length > 6) {
+    bubbleContainer.lastChild.remove();
+  }
+}
+
+// Poll for new questions
+setInterval(() => {
+  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  if (questions.length > lastQCount) {
+    // Show new questions
+    for (let i = lastQCount; i < questions.length; i++) {
+      setTimeout(() => showQuestionBubble(questions[i]), (i - lastQCount) * 300);
+    }
+    lastQCount = questions.length;
+  }
+}, 1500);
+
+// Init with existing count
+lastQCount = JSON.parse(localStorage.getItem('galvanic_questions') || '[]').length;
+</script>
+
+<style>
+  @keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+</style>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "galvanic-cell-lab",
+  "version": "1.0.0",
+  "description": "原电池探究平台 — AI赋能化学课堂",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>微观模型讲解（2D） — 原电池探究平台</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#080c16;--bg-panel:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.07);--text:#e4e6ec;--text-dim:rgba(255,255,255,0.45);--cyan:#5cc4c4;--blue:#4a90d9;--gold:#c9a84c;--green:#5cb85c;--purple:#9b7ed8;--red:#e06070;--ion-blue:#6080dd}
+  html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+  .app{display:grid;grid-template-columns:1fr 340px;grid-template-rows:56px 1fr;height:100vh}
+  .topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(0,0,0,0.3);border-bottom:1px solid var(--border);backdrop-filter:blur(10px)}
+  .topbar-left{display:flex;align-items:center;gap:1rem}
+  .back-btn{display:flex;align-items:center;gap:.4rem;color:var(--text-dim);text-decoration:none;font-size:.8rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s}
+  .back-btn:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+  .topbar-title{font-family:'Noto Serif SC',serif;font-size:1.05rem;font-weight:600;letter-spacing:.06em}
+  .topbar-badge{font-size:.65rem;padding:.2rem .6rem;border-radius:10px;background:rgba(92,196,196,0.1);color:var(--cyan);border:1px solid rgba(92,196,196,0.2)}
+  .topbar-controls{display:flex;gap:.5rem}
+  .ctrl-btn{padding:.45rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-panel);color:var(--text);font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit}
+  .ctrl-btn:hover{border-color:var(--cyan);background:rgba(92,196,196,0.06)}
+  .ctrl-btn.active{border-color:var(--cyan);background:rgba(92,196,196,0.12);color:var(--cyan)}
+  .canvas-area{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,rgba(92,196,196,0.03) 0%,transparent 70%)}
+  .diagram-container{position:relative;width:720px;height:540px}
+  .hotspot{position:absolute;cursor:pointer;border-radius:12px;border:2px solid transparent;transition:all .35s cubic-bezier(.4,0,.2,1)}
+  .hotspot::after{content:attr(data-label);position:absolute;font-size:.72rem;white-space:nowrap;color:var(--text-dim);transition:color .3s;letter-spacing:.05em;pointer-events:none}
+  .hotspot:hover,.hotspot.active{border-color:var(--hc);background:var(--hb);box-shadow:0 0 30px var(--hg)}
+  .hotspot:hover::after,.hotspot.active::after{color:var(--hc)}
+  .hotspot.pulse{animation:hp 2s ease-in-out infinite}
+  @keyframes hp{0%,100%{box-shadow:0 0 0 0 var(--hg)}50%{box-shadow:0 0 20px 4px var(--hg)}}
+  .h-e{--hc:var(--cyan);--hb:rgba(92,196,196,0.08);--hg:rgba(92,196,196,0.2)}
+  .h-r{--hc:var(--green);--hb:rgba(92,203,92,0.08);--hg:rgba(92,203,92,0.2)}
+  .h-w{--hc:var(--gold);--hb:rgba(201,168,76,0.08);--hg:rgba(201,168,76,0.2)}
+  .h-s{--hc:var(--purple);--hb:rgba(155,126,216,0.08);--hg:rgba(155,126,216,0.2)}
+  /* Hotspot label positioning */
+  .hs-elec-left::after{bottom:auto;top:50%;right:-72px;transform:translateY(-50%)}
+  .hs-elec-right::after{bottom:auto;top:50%;left:-72px;transform:translateY(-50%)}
+  .hs-react-left::after{top:-24px;left:50%;transform:translateX(-50%)}
+  .hs-react-right::after{top:-24px;left:50%;transform:translateX(-50%)}
+  .hs-wire::after{top:50%;left:50%;transform:translate(-50%,-50%)}
+  .hs-sol::after{top:50%;left:50%;transform:translate(-50%,-50%)}
+  .detail-panel{border-left:1px solid var(--border);background:rgba(0,0,0,0.2);overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column}
+  .panel-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-dim);gap:1rem}
+  .panel-placeholder p{font-size:.82rem;line-height:1.6;max-width:220px}
+  .detail-content{display:none;flex-direction:column;gap:1.1rem;animation:fsi .4s ease-out}
+  .detail-content.visible{display:flex}
+  @keyframes fsi{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:translateX(0)}}
+  .detail-header{display:flex;align-items:center;gap:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+  .detail-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .detail-title{font-family:'Noto Serif SC',serif;font-size:1.1rem;font-weight:600}
+  .ds{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+  .ds-l{font-size:.68rem;color:var(--text-dim);letter-spacing:.1em;margin-bottom:.6rem}
+  .ds p{font-size:.85rem;line-height:1.75;color:rgba(255,255,255,0.75)}
+  .hl{font-weight:500;color:var(--cyan)}
+  .df{font-family:'Times New Roman',serif;font-size:1rem;text-align:center;padding:.8rem;background:rgba(92,196,196,0.05);border-radius:8px;border:1px solid rgba(92,196,196,0.1);color:var(--cyan)}
+  .dk{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
+  .dk span{font-size:.7rem;padding:.25rem .6rem;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-dim)}
+  .step-nav{display:flex;align-items:center;gap:.4rem;padding:.6rem 1rem;background:rgba(0,0,0,0.3);border-radius:30px;position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:10}
+  .sd{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);cursor:pointer;transition:all .3s}
+  .sd.a{width:24px;border-radius:4px;background:var(--cyan)}
+  .mi{position:absolute;top:1rem;left:1.5rem;font-size:.72rem;color:var(--text-dim);display:flex;align-items:center;gap:.5rem;z-index:10}
+  .mi .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:bk 2s ease-in-out infinite}
+  @keyframes bk{0%,100%{opacity:.3}50%{opacity:1}}
+  #eCanvas{position:absolute;inset:0;pointer-events:none;z-index:5}
+  .sw{position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:.4rem .8rem;font-size:.7rem;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,0.4);color:var(--text-dim);cursor:pointer;font-family:inherit;text-decoration:none;transition:all .2s}
+  .sw:hover{border-color:var(--cyan);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</a>
+      <div class="topbar-title">微观模型讲解</div>
+      <div class="topbar-badge">2D 视图</div>
+    </div>
+    <div class="topbar-controls">
+      <button class="ctrl-btn" onclick="prevStep()">← 上一步</button>
+      <button class="ctrl-btn" onclick="nextStep()">下一步 →</button>
+      <button class="ctrl-btn" onclick="goOverview()">总览</button>
+      <button class="ctrl-btn" id="btnA" onclick="toggleAnim()"><span id="aL">启动粒子</span></button>
+    </div>
+  </div>
+  <div class="canvas-area">
+    <div class="mi"><div class="dot"></div><span id="mT">总览模式 · 点击任意要素查看详情</span></div>
+    <div class="diagram-container">
+      <svg viewBox="0 0 720 540" style="width:100%;height:100%">
+        <defs>
+          <linearGradient id="gS" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#9b7ed8" stop-opacity="0.12"/>
+            <stop offset="100%" stop-color="#9b7ed8" stop-opacity="0.32"/>
+          </linearGradient>
+          <radialGradient id="bulbGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffe066" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#ffe066" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
+          </radialGradient>
+          <filter id="glowFilter">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Container / beaker -->
+        <rect x="150" y="190" width="420" height="290" rx="8" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.1)" stroke-width="3"/>
+        <!-- Solution fill -->
+        <rect x="153" y="255" width="414" height="222" rx="5" fill="url(#gS)"/>
+        <!-- Liquid surface line -->
+        <line x1="153" y1="255" x2="567" y2="255" stroke="#9b7ed8" stroke-width="1" opacity="0.4" stroke-dasharray="4,4"/>
+        <!-- Left electrode (负极) -->
+        <rect x="230" y="110" width="18" height="320" rx="3" fill="rgba(92,196,196,0.2)" stroke="#5cc4c4" stroke-width="1.5"/>
+        <text x="239" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Pt电极</text>
+        <text x="239" y="86" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11">负极</text>
+        <!-- Right electrode (正极) -->
+        <rect x="472" y="110" width="18" height="320" rx="3" fill="rgba(92,196,196,0.2)" stroke="#5cc4c4" stroke-width="1.5"/>
+        <text x="481" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Pt电极</text>
+        <text x="481" y="86" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11">正极</text>
+        <!-- Gas labels -->
+        <text x="239" y="170" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">H₂</text>
+        <text x="481" y="170" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">O₂</text>
+        <!-- Wire: left electrode to bulb -->
+        <path d="M239 110 L239 55 Q239 35 259 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <!-- Wire: right electrode to bulb -->
+        <path d="M481 110 L481 55 Q481 35 461 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <!-- Bulb outer glow (animated) -->
+        <circle cx="360" cy="35" r="28" id="bGlow" fill="url(#bulbGlow)" opacity="0"/>
+        <!-- Light cone below bulb (animated) -->
+        <polygon id="bCone" points="348,50 372,50 390,90 330,90" fill="rgba(255,220,100,0)" opacity="0"/>
+        <!-- Bulb body -->
+        <circle cx="360" cy="35" r="16" fill="rgba(255,220,100,0.03)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" id="bC"/>
+        <!-- Filament -->
+        <path d="M354 29 Q357 23 360 29 Q363 23 366 29" fill="none" stroke="rgba(255,220,100,0.3)" stroke-width="1.5" id="bF"/>
+        <!-- Bulb label -->
+        <text x="360" y="64" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">灯泡</text>
+        <!-- Electron direction arrows (shown when animated) -->
+        <g id="eA" opacity="0">
+          <text x="280" y="28" fill="#c9a84c" font-size="10">e⁻ →</text>
+          <text x="420" y="28" fill="#c9a84c" font-size="10">→ e⁻</text>
+        </g>
+        <!-- Static ion labels in solution -->
+        <g opacity="0.4">
+          <text x="300" y="320" fill="#e06070" font-size="11">H⁺</text>
+          <text x="360" y="400" fill="#6080dd" font-size="11">SO₄²⁻</text>
+          <text x="430" y="310" fill="#e06070" font-size="11">H⁺</text>
+          <text x="320" y="380" fill="#e06070" font-size="11">H⁺</text>
+          <text x="410" y="390" fill="#6080dd" font-size="11">SO₄²⁻</text>
+        </g>
+        <!-- Solution label -->
+        <text x="360" y="498" text-anchor="middle" fill="#9b7ed8" font-size="13" opacity="0.7">稀硫酸</text>
+        <text x="360" y="528" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="11">氢氧燃料电池装置示意图</text>
+      </svg>
+      <!-- Hotspots with repositioned labels to avoid overlap -->
+      <div class="hotspot h-e pulse hs-elec-left" style="left:207px;top:82px;width:62px;height:345px" data-label="电极材料" onclick="show('electrode')"></div>
+      <div class="hotspot h-e pulse hs-elec-right" style="left:451px;top:82px;width:62px;height:345px" data-label="电极材料" onclick="show('electrode')"></div>
+      <div class="hotspot h-r pulse hs-react-left" style="left:210px;top:140px;width:58px;height:50px" data-label="电极反应物" onclick="show('reactant')"></div>
+      <div class="hotspot h-r pulse hs-react-right" style="left:452px;top:140px;width:58px;height:50px" data-label="电极反应物" onclick="show('reactant')"></div>
+      <div class="hotspot h-w pulse hs-wire" style="left:220px;top:8px;width:280px;height:56px" data-label="电子导体" onclick="show('econductor')"></div>
+      <div class="hotspot h-s pulse hs-sol" style="left:150px;top:430px;width:420px;height:50px" data-label="离子导体" onclick="show('iconductor')"></div>
+      <canvas id="eCanvas"></canvas>
+    </div>
+    <div class="step-nav">
+      <div class="sd a" onclick="goToStep(0)"></div>
+      <div class="sd" onclick="goToStep(1)"></div>
+      <div class="sd" onclick="goToStep(2)"></div>
+      <div class="sd" onclick="goToStep(3)"></div>
+      <div class="sd" onclick="goToStep(4)"></div>
+      <span style="font-size:.7rem;color:var(--text-dim);margin-left:.4rem" id="sL">0 / 4</span>
+    </div>
+    <a href="model.html" class="sw">切换 3D 视图</a>
+  </div>
+  <div class="detail-panel">
+    <div class="panel-placeholder" id="pp" style="align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:.8rem">
+      <div style="text-align:center;padding-top:.3rem">
+        <div style="font-family:'Noto Serif SC',serif;font-size:1.05rem;font-weight:600;margin-bottom:.3rem">原电池四大构成要素</div>
+        <p style="font-size:.75rem;color:rgba(255,255,255,0.4);line-height:1.5">以氢氧燃料电池为例，点击高亮区域逐步探究</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <div style="background:rgba(92,196,196,0.05);border:1px solid rgba(92,196,196,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('electrode')">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#5cc4c4"></div><span style="font-size:.78rem;font-weight:600;color:#5cc4c4">电极材料</span></div>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">导电场所（Pt/石墨）</p>
+        </div>
+        <div style="background:rgba(92,184,92,0.05);border:1px solid rgba(92,184,92,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('reactant')">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#5cb85c"></div><span style="font-size:.78rem;font-weight:600;color:#5cb85c">电极反应物</span></div>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">H₂（还原剂）O₂（氧化剂）</p>
+        </div>
+        <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('econductor')">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#c9a84c"></div><span style="font-size:.78rem;font-weight:600;color:#c9a84c">电子导体</span></div>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">导线（外电路传导电子）</p>
+        </div>
+        <div style="background:rgba(155,126,216,0.05);border:1px solid rgba(155,126,216,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('iconductor')">
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#9b7ed8"></div><span style="font-size:.78rem;font-weight:600;color:#9b7ed8">离子导体</span></div>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">电解质溶液（内电路）</p>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:.6rem">
+        <div style="font-size:.65rem;color:rgba(255,255,255,0.25);margin-bottom:.3rem">原电池 vs 燃烧</div>
+        <p style="font-size:.7rem;color:rgba(255,255,255,0.45);line-height:1.5"><span style="color:#5cb85c">燃烧</span>：直接接触→热能 &nbsp; <span style="color:#5cc4c4">原电池</span>：分区进行→电能</p>
+      </div>
+    </div>
+    <div class="detail-content" id="detail-electrode">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--cyan)"></div><div class="detail-title">电极材料</div></div>
+      <div class="ds"><div class="ds-l">定义</div><p>电极材料是<span class="hl">容纳电极反应发生的场所</span>，为反应物提供得失电子的界面。</p></div>
+      <div class="ds"><div class="ds-l">本装置</div><p>使用两个<span class="hl">铂（Pt）电极</span>。铂具有优良的导电性和化学稳定性，能吸附气体分子并催化电极反应。</p></div>
+      <div class="ds"><div class="ds-l">核心要求</div><p>电极材料的基本要求是<span class="hl">能够导电</span>。石墨虽非金属，也可作电极材料。</p></div>
+      <div class="ds"><div class="ds-l">关键理解</div><p>Pt电极<span class="hl">本身不参加化学反应</span>，仅提供反应场所。</p></div>
+      <div class="dk"><span>导电性</span><span>催化作用</span><span>反应场所</span><span>Pt / 石墨</span></div>
+    </div>
+    <div class="detail-content" id="detail-reactant">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--green)"></div><div class="detail-title">电极反应物</div></div>
+      <div class="ds"><div class="ds-l">定义</div><p>参与<span class="hl" style="color:var(--green)">氧化还原反应</span>的物质——还原剂（失电子）和氧化剂（得电子）。</p></div>
+      <div class="ds"><div class="ds-l">负极反应</div><p><span class="hl" style="color:var(--green)">H₂</span>在负极失去电子：</p><div class="df">H₂ - 2e⁻ → 2H⁺</div></div>
+      <div class="ds"><div class="ds-l">正极反应</div><p><span class="hl" style="color:var(--green)">O₂</span>在正极得到电子：</p><div class="df">O₂ + 4e⁻ + 4H⁺ → 2H₂O</div></div>
+      <div class="ds"><div class="ds-l">总反应</div><div class="df">2H₂ + O₂ → 2H₂O</div><p style="margin-top:.5rem;font-size:.8rem">与燃烧相同，但<span class="hl" style="color:var(--green)">不需要点燃</span>。</p></div>
+      <div class="dk"><span>还原剂 H₂</span><span>氧化剂 O₂</span><span>氧化还原反应</span></div>
+    </div>
+    <div class="detail-content" id="detail-econductor">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--gold)"></div><div class="detail-title">电子导体</div></div>
+      <div class="ds"><div class="ds-l">定义</div><p>即<span class="hl" style="color:var(--gold)">导线</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
+      <div class="ds"><div class="ds-l">工作原理</div><p>H₂失去电子后，电子沿导线经过灯泡流向正极。<span class="hl" style="color:var(--gold)">定向移动</span>产生电流，灯泡发光。</p></div>
+      <div class="ds"><div class="ds-l">与燃烧的区别</div><p>燃烧时H₂与O₂直接接触——<span class="hl" style="color:var(--gold)">无定向移动，不产生电流</span>。原电池将反应分区进行。</p></div>
+      <div class="ds"><div class="ds-l">关键</div><p>电路必须<span class="hl" style="color:var(--gold)">闭合</span>。</p></div>
+      <div class="dk"><span>导线</span><span>外电路</span><span>定向移动</span><span>闭合回路</span></div>
+    </div>
+    <div class="detail-content" id="detail-iconductor">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--purple)"></div><div class="detail-title">离子导体</div></div>
+      <div class="ds"><div class="ds-l">定义</div><p>即<span class="hl" style="color:var(--purple)">电解质溶液</span>，构成内电路，离子定向迁移传导电荷。</p></div>
+      <div class="ds"><div class="ds-l">本装置</div><p>使用<span class="hl" style="color:var(--purple)">稀硫酸</span>。H⁺向正极迁移，SO₄²⁻向负极迁移。</p></div>
+      <div class="ds"><div class="ds-l">为什么不能用纯水？</div><p>纯水几乎不含自由离子，相当于<span class="hl" style="color:var(--purple)">断路</span>。</p></div>
+      <div class="ds"><div class="ds-l">替代方案</div><p>NaOH可以，无水乙醇<span class="hl" style="color:var(--purple)">不可以</span>（非电解质）。</p></div>
+      <div class="dk"><span>电解质溶液</span><span>内电路</span><span>离子迁移</span><span>H₂SO₄</span></div>
+    </div>
+  </div>
+</div>
+<script>
+let cs = 0, an = false, af = null;
+const sm = ['overview','electrode','reactant','econductor','iconductor'];
+const sn = ['总览','电极材料','电极反应物','电子导体','离子导体'];
+const cv = document.getElementById('eCanvas'), cx = cv.getContext('2d');
+
+// Scaling helpers
+let W = 720, H = 540, sx = 1, sy = 1;
+
+function rc() {
+  const p = cv.parentElement;
+  cv.width = p.offsetWidth;
+  cv.height = p.offsetHeight;
+  sx = cv.width / W;
+  sy = cv.height / H;
+}
+rc();
+window.addEventListener('resize', () => { rc(); if (an) { createAllParticles(); } });
+
+// ─── Wire path (electron flow: left electrode → up → along wire → through bulb → down to right electrode) ───
+function getWirePath() {
+  return [
+    {x: 239*sx, y: 110*sy},
+    {x: 239*sx, y: 55*sy},
+    {x: 259*sx, y: 35*sy},
+    {x: 310*sx, y: 35*sy},
+    {x: 360*sx, y: 35*sy},
+    {x: 410*sx, y: 35*sy},
+    {x: 461*sx, y: 35*sy},
+    {x: 481*sx, y: 55*sy},
+    {x: 481*sx, y: 110*sy}
+  ];
+}
+
+// ─── Particle classes ───
+
+// Electron particle along wire
+class ElectronParticle {
+  constructor() {
+    this.path = getWirePath();
+    this.t = Math.random();
+    this.speed = 0.002 + Math.random() * 0.002;
+    this.size = 2 + Math.random() * 1.5;
+    this.trail = [];
+  }
+  getPos() {
+    const i = this.t * (this.path.length - 1);
+    const f = Math.floor(i);
+    const r = i - f;
+    const a = this.path[Math.min(f, this.path.length - 1)];
+    const b = this.path[Math.min(f + 1, this.path.length - 1)];
+    return { x: a.x + (b.x - a.x) * r, y: a.y + (b.y - a.y) * r };
+  }
+  update() {
+    const pos = this.getPos();
+    this.trail.push({ x: pos.x, y: pos.y, a: 1 });
+    if (this.trail.length > 12) this.trail.shift();
+    this.trail.forEach(t => t.a *= 0.85);
+    this.t += this.speed;
+    if (this.t > 1) this.t = 0;
+  }
+  draw(ctx) {
+    // Trail
+    for (let i = 0; i < this.trail.length; i++) {
+      const t = this.trail[i];
+      const alpha = t.a * 0.4;
+      const sz = this.size * (i / this.trail.length) * 0.8;
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, sz, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,210,80,${alpha})`;
+      ctx.fill();
+    }
+    // Main particle
+    const pos = this.getPos();
+    // Outer glow
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, this.size * 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,210,80,0.08)';
+    ctx.fill();
+    // Inner glow
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, this.size * 2, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,220,100,0.2)';
+    ctx.fill();
+    // Core
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,230,120,0.95)';
+    ctx.fill();
+  }
+}
+
+// Ion particle (H+ or SO4 2-)
+class IonParticle {
+  constructor(type) {
+    this.type = type; // 'h' for H+, 's' for SO4 2-
+    this.t = Math.random();
+    this.speed = 0.0012 + Math.random() * 0.001;
+    this.wobbleAmp = 3 + Math.random() * 4;
+    this.wobbleFreq = 2 + Math.random() * 2;
+    this.wobblePhase = Math.random() * Math.PI * 2;
+    this.trail = [];
+    if (type === 'h') {
+      this.size = 5;
+      this.color = [224, 96, 112]; // red/pink
+      this.label = 'H\u207A';
+    } else {
+      this.size = 8;
+      this.color = [96, 128, 221]; // blue/indigo
+      this.label = 'SO\u2084\u00B2\u207B';
+    }
+  }
+  getPath() {
+    // Solution bounds: x from ~245 to ~475, y from ~265 to ~465
+    const lx = 250 * sx, rx = 470 * sx;
+    const ty = 270 * sy, by = 450 * sy;
+    const midY = ty + (by - ty) * (0.3 + Math.random() * 0.4);
+    if (this.type === 'h') {
+      // H+ moves left → right (负极 to 正极)
+      return [
+        {x: lx, y: midY},
+        {x: lx + (rx - lx) * 0.25, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: lx + (rx - lx) * 0.5, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: lx + (rx - lx) * 0.75, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: rx, y: midY}
+      ];
+    } else {
+      // SO4 2- moves right → left (正极 to 负极)
+      return [
+        {x: rx, y: midY},
+        {x: rx - (rx - lx) * 0.25, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: rx - (rx - lx) * 0.5, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: rx - (rx - lx) * 0.75, y: midY + (Math.random() - 0.5) * 30 * sy},
+        {x: lx, y: midY}
+      ];
+    }
+  }
+  init() {
+    this.path = this.getPath();
+  }
+  getPos() {
+    const i = this.t * (this.path.length - 1);
+    const f = Math.floor(i);
+    const r = i - f;
+    const a = this.path[Math.min(f, this.path.length - 1)];
+    const b = this.path[Math.min(f + 1, this.path.length - 1)];
+    const px = a.x + (b.x - a.x) * r;
+    const py = a.y + (b.y - a.y) * r;
+    // Add wobble
+    const wobble = Math.sin(this.t * Math.PI * this.wobbleFreq + this.wobblePhase) * this.wobbleAmp * sy;
+    return { x: px, y: py + wobble };
+  }
+  update() {
+    const pos = this.getPos();
+    this.trail.push({ x: pos.x, y: pos.y, a: 0.6 });
+    if (this.trail.length > 8) this.trail.shift();
+    this.trail.forEach(t => t.a *= 0.82);
+    this.t += this.speed;
+    if (this.t > 1) {
+      this.t = 0;
+      this.path = this.getPath();
+    }
+  }
+  draw(ctx) {
+    const [r, g, b] = this.color;
+    // Trail
+    for (let i = 0; i < this.trail.length; i++) {
+      const t = this.trail[i];
+      const alpha = t.a * 0.25;
+      const sz = this.size * 0.5 * (i / this.trail.length);
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, sz, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+      ctx.fill();
+    }
+    const pos = this.getPos();
+    // Outer glow
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, this.size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},0.06)`;
+    ctx.fill();
+    // Body
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},0.7)`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${r},${g},${b},0.9)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Label
+    ctx.font = `bold ${Math.max(8, this.size * 1.1)}px 'Noto Sans SC', sans-serif`;
+    ctx.fillStyle = `rgba(255,255,255,0.9)`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.label, pos.x, pos.y);
+  }
+}
+
+// Bubble particle (H2 rising from left electrode, O2 absorbed at right electrode)
+class BubbleParticle {
+  constructor(type) {
+    this.type = type; // 'h2' or 'o2'
+    this.reset();
+  }
+  reset() {
+    if (this.type === 'h2') {
+      // H2 bubbles rise from left electrode surface
+      this.x = (225 + Math.random() * 28) * sx;
+      this.startY = (250 + Math.random() * 40) * sy;
+      this.y = this.startY;
+      this.targetY = (180 + Math.random() * 40) * sy;
+      this.size = (2 + Math.random() * 3) * sx;
+      this.color = [100, 200, 120]; // green-tinted
+      this.speed = (0.3 + Math.random() * 0.4) * sy;
+    } else {
+      // O2 particles move toward right electrode
+      this.x = (495 + Math.random() * 40) * sx;
+      this.startY = (180 + Math.random() * 60) * sy;
+      this.y = this.startY;
+      this.targetX = (480 + Math.random() * 10) * sx;
+      this.size = (1.5 + Math.random() * 2.5) * sx;
+      this.color = [100, 150, 230]; // blue-tinted
+      this.speed = (0.15 + Math.random() * 0.25) * sx;
+    }
+    this.wobblePhase = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.03 + Math.random() * 0.03;
+    this.alpha = 0.6 + Math.random() * 0.3;
+    this.life = 1;
+  }
+  update() {
+    if (this.type === 'h2') {
+      this.y -= this.speed;
+      this.wobblePhase += this.wobbleSpeed;
+      if (this.y < this.targetY) {
+        this.life -= 0.02;
+        if (this.life <= 0) this.reset();
+      }
+    } else {
+      this.x += (this.targetX - this.x) * 0.008;
+      this.wobblePhase += this.wobbleSpeed;
+      this.life -= 0.005;
+      if (this.life <= 0) this.reset();
+    }
+  }
+  draw(ctx) {
+    const [r, g, b] = this.color;
+    const wobbleX = Math.sin(this.wobblePhase) * 3 * sx;
+    const px = this.x + wobbleX;
+    const py = this.y;
+    const a = this.alpha * this.life;
+    // Glow
+    ctx.beginPath();
+    ctx.arc(px, py, this.size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.1})`;
+    ctx.fill();
+    // Bubble
+    ctx.beginPath();
+    ctx.arc(px, py, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.3})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${r},${g},${b},${a * 0.6})`;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // Highlight
+    ctx.beginPath();
+    ctx.arc(px - this.size * 0.3, py - this.size * 0.3, this.size * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.4})`;
+    ctx.fill();
+  }
+}
+
+// Bokeh / ambient dust mote
+class BokehParticle {
+  constructor() {
+    this.reset(true);
+  }
+  reset(initial) {
+    this.x = Math.random() * cv.width;
+    this.y = Math.random() * cv.height;
+    this.size = 1 + Math.random() * 2.5;
+    this.alpha = 0.02 + Math.random() * 0.06;
+    this.vx = (Math.random() - 0.5) * 0.15;
+    this.vy = (Math.random() - 0.5) * 0.1;
+    this.pulse = Math.random() * Math.PI * 2;
+    this.pulseSpeed = 0.005 + Math.random() * 0.01;
+    if (!initial) this.alpha = 0;
+    this.targetAlpha = 0.02 + Math.random() * 0.06;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.pulse += this.pulseSpeed;
+    if (this.alpha < this.targetAlpha) this.alpha += 0.001;
+    if (this.x < -10 || this.x > cv.width + 10 || this.y < -10 || this.y > cv.height + 10) {
+      this.reset(false);
+    }
+  }
+  draw(ctx) {
+    const a = this.alpha * (0.5 + 0.5 * Math.sin(this.pulse));
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(180,200,220,${a})`;
+    ctx.fill();
+  }
+}
+
+// ─── Particle arrays ───
+let electrons = [];
+let ions = [];
+let bubbles = [];
+let bokehs = [];
+
+function createAllParticles() {
+  electrons = [];
+  ions = [];
+  bubbles = [];
+  bokehs = [];
+  // Electrons along wire
+  for (let i = 0; i < 14; i++) {
+    electrons.push(new ElectronParticle());
+  }
+  // H+ ions (left to right)
+  for (let i = 0; i < 6; i++) {
+    const ion = new IonParticle('h');
+    ion.init();
+    ions.push(ion);
+  }
+  // SO4 2- ions (right to left)
+  for (let i = 0; i < 4; i++) {
+    const ion = new IonParticle('s');
+    ion.init();
+    ions.push(ion);
+  }
+  // H2 bubbles from left electrode
+  for (let i = 0; i < 8; i++) {
+    bubbles.push(new BubbleParticle('h2'));
+  }
+  // O2 particles toward right electrode
+  for (let i = 0; i < 5; i++) {
+    bubbles.push(new BubbleParticle('o2'));
+  }
+  // Ambient bokeh
+  for (let i = 0; i < 25; i++) {
+    bokehs.push(new BokehParticle());
+  }
+}
+
+// ─── Bulb glow animation ───
+let bulbGlowPhase = 0;
+
+function updateBulbGlow() {
+  if (!an) return;
+  bulbGlowPhase += 0.02;
+  const flicker = 0.85 + 0.15 * Math.sin(bulbGlowPhase * 3.7) * Math.sin(bulbGlowPhase * 1.3);
+
+  const bC = document.getElementById('bC');
+  const bF = document.getElementById('bF');
+  const bGlow = document.getElementById('bGlow');
+  const bCone = document.getElementById('bCone');
+
+  // Bulb body glow
+  bC.setAttribute('fill', `rgba(255,220,100,${0.15 * flicker})`);
+  bC.setAttribute('stroke', `rgba(255,220,100,${0.7 * flicker})`);
+  bC.setAttribute('stroke-width', '2');
+
+  // Filament glow
+  bF.setAttribute('stroke', `rgba(255,240,150,${flicker})`);
+  bF.setAttribute('stroke-width', '2');
+
+  // Radial glow
+  const stops = bGlow.parentElement.querySelector('#bulbGlow');
+  if (stops) {
+    const stopEls = stops.querySelectorAll('stop');
+    if (stopEls.length >= 3) {
+      stopEls[0].setAttribute('stop-opacity', (0.4 * flicker).toFixed(3));
+      stopEls[1].setAttribute('stop-opacity', (0.15 * flicker).toFixed(3));
+      stopEls[2].setAttribute('stop-opacity', '0');
+    }
+  }
+  bGlow.setAttribute('opacity', '1');
+
+  // Light cone
+  bCone.setAttribute('fill', `rgba(255,220,100,${0.03 * flicker})`);
+  bCone.setAttribute('opacity', '1');
+}
+
+function resetBulbGlow() {
+  const bC = document.getElementById('bC');
+  const bF = document.getElementById('bF');
+  const bGlow = document.getElementById('bGlow');
+  const bCone = document.getElementById('bCone');
+  bC.setAttribute('fill', 'rgba(255,220,100,0.03)');
+  bC.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+  bC.setAttribute('stroke-width', '1.5');
+  bF.setAttribute('stroke', 'rgba(255,220,100,0.3)');
+  bF.setAttribute('stroke-width', '1.5');
+  bGlow.setAttribute('opacity', '0');
+  bCone.setAttribute('opacity', '0');
+}
+
+// ─── Vignette ───
+function drawVignette(ctx) {
+  const w = cv.width, h = cv.height;
+  const grad = ctx.createRadialGradient(w/2, h/2, Math.min(w, h) * 0.3, w/2, h/2, Math.max(w, h) * 0.7);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,0.25)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ─── Main animation loop ───
+function animate() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  if (!an) return;
+
+  // Draw bokeh background
+  bokehs.forEach(b => { b.update(); b.draw(cx); });
+
+  // Draw bubbles
+  bubbles.forEach(b => { b.update(); b.draw(cx); });
+
+  // Draw ions
+  ions.forEach(i => { i.update(); i.draw(cx); });
+
+  // Draw electrons
+  electrons.forEach(e => { e.update(); e.draw(cx); });
+
+  // Vignette overlay
+  drawVignette(cx);
+
+  // Bulb glow
+  updateBulbGlow();
+
+  af = requestAnimationFrame(animate);
+}
+
+function toggleAnim() {
+  an = !an;
+  document.getElementById('aL').textContent = an ? '停止粒子' : '启动粒子';
+  document.getElementById('btnA').classList.toggle('active', an);
+  document.getElementById('eA').setAttribute('opacity', an ? '0.6' : '0');
+
+  if (an) {
+    rc();
+    createAllParticles();
+    animate();
+  } else {
+    cancelAnimationFrame(af);
+    cx.clearRect(0, 0, cv.width, cv.height);
+    resetBulbGlow();
+  }
+}
+
+// ─── Step / detail navigation ───
+function show(k) {
+  document.getElementById('pp').style.display = 'none';
+  document.querySelectorAll('.detail-content').forEach(e => e.classList.remove('visible'));
+  const t = document.getElementById('detail-' + k);
+  if (t) t.classList.add('visible');
+  document.querySelectorAll('.hotspot').forEach(e => { e.classList.remove('active', 'pulse'); });
+  const hs = document.querySelectorAll('.hotspot');
+  if (k === 'electrode') { hs[0].classList.add('active'); hs[1].classList.add('active'); }
+  else if (k === 'reactant') { hs[2].classList.add('active'); hs[3].classList.add('active'); }
+  else if (k === 'econductor') { hs[4].classList.add('active'); }
+  else if (k === 'iconductor') { hs[5].classList.add('active'); }
+  const si = sm.indexOf(k);
+  if (si >= 0) { cs = si; ui(); }
+}
+
+function goOverview() {
+  cs = 0;
+  document.getElementById('pp').style.display = 'flex';
+  document.querySelectorAll('.detail-content').forEach(e => e.classList.remove('visible'));
+  document.querySelectorAll('.hotspot').forEach(e => { e.classList.remove('active'); e.classList.add('pulse'); });
+  ui();
+}
+
+function nextStep() { if (cs < 4) { cs++; show(sm[cs]); } }
+function prevStep() { if (cs > 0) { cs--; cs === 0 ? goOverview() : show(sm[cs]); } }
+function goToStep(s) { cs = s; s === 0 ? goOverview() : show(sm[s]); }
+
+function ui() {
+  document.querySelectorAll('.sd').forEach((d, i) => d.classList.toggle('a', i === cs));
+  document.getElementById('sL').textContent = `${cs} / 4`;
+  document.getElementById('mT').textContent = cs === 0 ? '总览模式 · 点击任意要素查看详情' : `步骤 ${cs} · ${sn[cs]}`;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+  if (e.key === 'Escape') goOverview();
+});
+
+ui();
+</script>
+</body>
+</html>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>微观模型讲解 — 原电池探究平台</title>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--bg:#060a14;--bg-panel:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.07);--text:#e4e6ec;--text-dim:rgba(255,255,255,0.45);--cyan:#5cc4c4;--blue:#4a90d9;--gold:#c9a84c;--green:#5cb85c;--purple:#9b7ed8;--red:#d9534f}
+  html,body{width:100%;height:100%;font-family:'Noto Sans SC',sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+  .app{display:grid;grid-template-columns:1fr 360px;grid-template-rows:56px 1fr;height:100vh}
+  .topbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;background:rgba(0,0,0,0.4);border-bottom:1px solid var(--border);backdrop-filter:blur(12px);z-index:10}
+  .topbar-left{display:flex;align-items:center;gap:1rem}
+  .back-btn{display:flex;align-items:center;gap:.4rem;color:var(--text-dim);text-decoration:none;font-size:.8rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s}
+  .back-btn:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+  .topbar-title{font-family:'Noto Serif SC',serif;font-size:1.05rem;font-weight:600;letter-spacing:.06em}
+  .topbar-badge{font-size:.65rem;padding:.2rem .6rem;border-radius:10px;background:rgba(92,196,196,0.1);color:var(--cyan);border:1px solid rgba(92,196,196,0.2)}
+  .topbar-controls{display:flex;gap:.5rem}
+  .ctrl-btn{padding:.45rem 1rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-panel);color:var(--text);font-size:.78rem;cursor:pointer;transition:all .2s;font-family:inherit}
+  .ctrl-btn:hover{border-color:var(--cyan);background:rgba(92,196,196,0.06)}
+  .ctrl-btn.active{border-color:var(--cyan);background:rgba(92,196,196,0.12);color:var(--cyan)}
+  .canvas-area{position:relative;overflow:hidden}
+  #three-canvas{width:100%;height:100%;display:block;cursor:grab}
+  #three-canvas:active{cursor:grabbing}
+  .label-3d{font-size:11px;color:rgba(255,255,255,0.75);padding:3px 10px;border-radius:5px;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.1);pointer-events:none;white-space:nowrap;letter-spacing:.03em;font-family:'Noto Sans SC',sans-serif}
+  .label-3d.title{font-size:14px;font-weight:600;color:var(--cyan);background:rgba(0,0,0,0.7);border-color:rgba(92,196,196,0.25)}
+  .label-3d.ion-label{font-size:13px;font-weight:700;padding:4px 12px;border-radius:8px;border:1.5px solid;letter-spacing:.05em}
+  .label-3d.ion-h{color:#ff4466;background:rgba(255,68,102,0.15);border-color:rgba(255,68,102,0.4)}
+  .label-3d.ion-s{color:#4466ff;background:rgba(68,102,255,0.15);border-color:rgba(68,102,255,0.4)}
+  .mode-bar{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);border-radius:30px;border:1px solid var(--border);z-index:10}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);cursor:pointer;transition:all .3s}
+  .step-dot.active{width:24px;border-radius:4px;background:var(--cyan)}
+  .step-dot:hover:not(.active){background:rgba(255,255,255,0.3)}
+  .step-label{font-size:.72rem;color:var(--text-dim);margin-left:.5rem;min-width:60px}
+  .mode-text{position:absolute;top:1rem;left:1.5rem;font-size:.72rem;color:var(--text-dim);display:flex;align-items:center;gap:.5rem;z-index:10}
+  .mode-text .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:blink 2s ease-in-out infinite}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  .hint-text{position:absolute;top:1rem;right:380px;font-size:.68rem;color:var(--text-dim);opacity:.5;z-index:10}
+  .detail-panel{border-left:1px solid var(--border);background:rgba(0,0,0,0.25);overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;backdrop-filter:blur(8px)}
+  .panel-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-dim);gap:1rem}
+  .panel-placeholder-icon{width:48px;height:48px;border-radius:12px;background:var(--bg-panel);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;opacity:.5}
+  .panel-placeholder p{font-size:.82rem;line-height:1.6;max-width:240px}
+  .detail-content{display:none;flex-direction:column;gap:1.2rem;animation:fadeSlideIn .45s ease-out}
+  .detail-content.visible{display:flex}
+  @keyframes fadeSlideIn{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:translateX(0)}}
+  .detail-header{display:flex;align-items:center;gap:.8rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+  .detail-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .detail-title{font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em}
+  .detail-section{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:1rem 1.1rem}
+  .detail-section-label{font-size:.68rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem}
+  .detail-section p{font-size:.85rem;line-height:1.75;color:rgba(255,255,255,0.75)}
+  .highlight{font-weight:500}
+  .hl-cyan{color:var(--cyan)}.hl-green{color:var(--green)}.hl-gold{color:var(--gold)}.hl-purple{color:var(--purple)}
+  .detail-formula{font-family:'Times New Roman',serif;font-size:1rem;text-align:center;padding:.8rem;background:rgba(92,196,196,0.05);border-radius:8px;border:1px solid rgba(92,196,196,0.1);color:var(--cyan);letter-spacing:.05em}
+  .detail-keywords{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
+  .keyword-tag{font-size:.7rem;padding:.25rem .6rem;border-radius:6px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--text-dim)}
+  .switch-btn{position:absolute;bottom:1.5rem;right:1.5rem;z-index:10;padding:.4rem .8rem;font-size:.7rem;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,0.4);color:var(--text-dim);cursor:pointer;font-family:inherit;backdrop-filter:blur(8px);transition:all .2s}
+  .switch-btn:hover{border-color:var(--cyan);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="index.html" class="back-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</a>
+      <div class="topbar-title">微观模型讲解</div>
+      <div class="topbar-badge">3D 交互</div>
+    </div>
+    <div class="topbar-controls">
+      <button class="ctrl-btn" onclick="window._prevStep()">← 上一步</button>
+      <button class="ctrl-btn" onclick="window._nextStep()">下一步 →</button>
+      <button class="ctrl-btn" onclick="window._goOverview()">总览</button>
+      <button class="ctrl-btn" id="btnParticle" onclick="window._toggleParticles()">启动粒子</button>
+      <button class="ctrl-btn active" id="btnRotate" onclick="window._toggleAutoRotate()">自动旋转</button>
+    </div>
+  </div>
+  <div class="canvas-area" id="canvasArea">
+    <canvas id="three-canvas"></canvas>
+    <div class="mode-text"><div class="dot"></div><span id="modeText">总览模式 · 点击部件查看详情 · 拖拽旋转</span></div>
+    <div class="hint-text">鼠标拖拽旋转 · 滚轮缩放 · 点击部件查看详情</div>
+    <div class="mode-bar">
+      <div class="step-dot active" onclick="window._goToStep(0)"></div>
+      <div class="step-dot" onclick="window._goToStep(1)"></div>
+      <div class="step-dot" onclick="window._goToStep(2)"></div>
+      <div class="step-dot" onclick="window._goToStep(3)"></div>
+      <div class="step-dot" onclick="window._goToStep(4)"></div>
+      <span class="step-label" id="stepLabel">总览</span>
+    </div>
+    <a href="model-2d.html" class="switch-btn">切换 2D 视图</a>
+  </div>
+  <div class="detail-panel">
+    <div class="panel-placeholder" id="panelPlaceholder" style="align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:1rem">
+      <div style="text-align:center;padding-top:.5rem">
+        <div style="font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em;margin-bottom:.3rem">原电池四大构成要素</div>
+        <p style="font-size:.78rem;color:rgba(255,255,255,0.4);line-height:1.5">以氢氧燃料电池为例，原电池将氧化还原反应的化学能直接转化为电能。点击模型部件或使用「下一步」逐步探究。</p>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+        <div style="background:rgba(92,196,196,0.05);border:1px solid rgba(92,196,196,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(1)">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#5cc4c4"></div><span style="font-size:.82rem;font-weight:600;color:#5cc4c4">电极材料</span></div>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">容纳反应发生的导电场所，如 Pt 电极、石墨</p>
+        </div>
+        <div style="background:rgba(92,184,92,0.05);border:1px solid rgba(92,184,92,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(2)">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#5cb85c"></div><span style="font-size:.82rem;font-weight:600;color:#5cb85c">电极反应物</span></div>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">参与氧化还原反应的物质：H₂（还原剂）、O₂（氧化剂）</p>
+        </div>
+        <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(3)">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#c9a84c"></div><span style="font-size:.82rem;font-weight:600;color:#c9a84c">电子导体</span></div>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">导线构成外电路，电子从负极定向移动到正极</p>
+        </div>
+        <div style="background:rgba(155,126,216,0.05);border:1px solid rgba(155,126,216,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(4)">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#9b7ed8"></div><span style="font-size:.82rem;font-weight:600;color:#9b7ed8">离子导体</span></div>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">电解质溶液构成内电路，离子定向迁移传导电荷</p>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:.8rem">
+        <div style="font-size:.68rem;color:rgba(255,255,255,0.3);letter-spacing:.08em;margin-bottom:.5rem">原电池 vs 燃烧</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">
+          <div><span style="color:#5cb85c">燃烧：</span>H₂与O₂直接接触，化学能→热能，无电流</div>
+          <div><span style="color:#5cc4c4">原电池：</span>反应分区进行，化学能→电能，产生电流</div>
+        </div>
+      </div>
+      <p style="font-size:.68rem;color:rgba(255,255,255,0.25);text-align:center">拖拽旋转 · 滚轮缩放 · 点击部件查看详情</p>
+    </div>
+    <div class="detail-content" id="detail-electrode">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--cyan)"></div><div class="detail-title">电极材料</div></div>
+      <div class="detail-section"><div class="detail-section-label">定义</div><p>电极材料是<span class="highlight hl-cyan">容纳电极反应发生的场所</span>，为反应物提供得失电子的界面。</p></div>
+      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用两个<span class="highlight hl-cyan">铂（Pt）电极</span>。铂具有优良的导电性和化学稳定性，能吸附气体分子并催化电极反应。</p></div>
+      <div class="detail-section"><div class="detail-section-label">核心要求</div><p>电极材料的基本要求是<span class="highlight hl-cyan">能够导电</span>。石墨虽非金属，也可作电极材料。</p></div>
+      <div class="detail-section"><div class="detail-section-label">关键理解</div><p>氢氧燃料电池中，Pt电极<span class="highlight hl-cyan">本身不参加化学反应</span>，仅提供反应场所。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">导电性</span><span class="keyword-tag">催化作用</span><span class="keyword-tag">反应场所</span><span class="keyword-tag">Pt / 石墨</span></div>
+    </div>
+    <div class="detail-content" id="detail-reactant">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--green)"></div><div class="detail-title">电极反应物</div></div>
+      <div class="detail-section"><div class="detail-section-label">定义</div><p>电极反应物是参与<span class="highlight hl-green">氧化还原反应</span>的物质——还原剂（失电子）和氧化剂（得电子）。</p></div>
+      <div class="detail-section"><div class="detail-section-label">负极反应</div><p><span class="highlight hl-green">H₂</span> 作为还原剂，在负极失去电子：</p><div class="detail-formula">H₂ - 2e⁻ → 2H⁺</div></div>
+      <div class="detail-section"><div class="detail-section-label">正极反应</div><p><span class="highlight hl-green">O₂</span> 作为氧化剂，在正极得到电子：</p><div class="detail-formula">O₂ + 4e⁻ + 4H⁺ → 2H₂O</div></div>
+      <div class="detail-section"><div class="detail-section-label">总反应</div><div class="detail-formula">2H₂ + O₂ → 2H₂O</div><p style="margin-top:.5rem;font-size:.8rem">与燃烧相同的反应，但<span class="highlight hl-green">不需要点燃</span>。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">还原剂 H₂</span><span class="keyword-tag">氧化剂 O₂</span><span class="keyword-tag">氧化还原反应</span></div>
+    </div>
+    <div class="detail-content" id="detail-econductor">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--gold)"></div><div class="detail-title">电子导体</div></div>
+      <div class="detail-section"><div class="detail-section-label">定义</div><p>电子导体即<span class="highlight hl-gold">导线</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
+      <div class="detail-section"><div class="detail-section-label">工作原理</div><p>负极 H₂ 失去电子后，电子沿导线经过用电器流向正极。电子的<span class="highlight hl-gold">定向移动</span>产生电流。</p></div>
+      <div class="detail-section"><div class="detail-section-label">与燃烧的区别</div><p>燃烧时 H₂ 与 O₂ 直接接触——<span class="highlight hl-gold">无定向移动，不产生电流</span>。原电池将氧化还原反应分区进行，迫使电子通过外电路定向流动。</p></div>
+      <div class="detail-section"><div class="detail-section-label">关键</div><p>电路必须<span class="highlight hl-gold">闭合</span>，否则原电池无法工作。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">导线</span><span class="keyword-tag">外电路</span><span class="keyword-tag">定向移动</span><span class="keyword-tag">闭合回路</span></div>
+    </div>
+    <div class="detail-content" id="detail-iconductor">
+      <div class="detail-header"><div class="detail-dot" style="background:var(--purple)"></div><div class="detail-title">离子导体</div></div>
+      <div class="detail-section"><div class="detail-section-label">定义</div><p>离子导体即<span class="highlight hl-purple">电解质溶液</span>，构成内电路，通过离子定向迁移传导电荷。</p></div>
+      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用<span class="highlight hl-purple">稀硫酸</span>。H⁺ 向正极迁移，SO₄²⁻ 向负极迁移。</p></div>
+      <div class="detail-section"><div class="detail-section-label">为什么不能用纯水？</div><p>纯水几乎不含自由离子，无法导电，相当于<span class="highlight hl-purple">断路</span>。</p></div>
+      <div class="detail-section"><div class="detail-section-label">替代方案</div><p>NaOH 溶液可以（能导电），无水乙醇<span class="highlight hl-purple">不可以</span>（非电解质）。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">电解质溶液</span><span class="keyword-tag">内电路</span><span class="keyword-tag">离子迁移</span><span class="keyword-tag">H₂SO₄</span></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ═══════════════════════════════════════════════════
+//  SCENE SETUP
+// ═══════════════════════════════════════════════════
+const container = document.getElementById('canvasArea');
+const canvas = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x060a14, 0.012);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+camera.position.set(0, 4, 22);
+
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.4;
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.6;
+controls.minDistance = 6;
+controls.maxDistance = 30;
+controls.target.set(0, 4, 0);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(container.clientWidth, container.clientHeight);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.left = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+container.appendChild(labelRenderer.domElement);
+
+function resize() {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ═══════════════════════════════════════════════════
+//  GROUND PLANE WITH GRID
+// ═══════════════════════════════════════════════════
+const groundGeo = new THREE.PlaneGeometry(60, 60);
+const groundMat = new THREE.MeshStandardMaterial({
+  color: 0x0a0e1a,
+  roughness: 0.95,
+  metalness: 0.0,
+  transparent: true,
+  opacity: 0.6
+});
+const ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.01;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Subtle grid overlay
+const gridHelper = new THREE.GridHelper(40, 40, 0x1a2040, 0x111830);
+gridHelper.position.y = 0;
+gridHelper.material.transparent = true;
+gridHelper.material.opacity = 0.15;
+scene.add(gridHelper);
+
+// ═══════════════════════════════════════════════════
+//  MATERIALS
+// ═══════════════════════════════════════════════════
+const matGlass = new THREE.MeshPhysicalMaterial({
+  color: 0xaabbcc, transparent: true, opacity: 0.1,
+  roughness: 0.05, metalness: 0, transmission: 0.85,
+  thickness: 0.5, side: THREE.DoubleSide, depthWrite: false
+});
+const matSolution = new THREE.MeshPhysicalMaterial({
+  color: 0x9b7ed8, transparent: true, opacity: 0.22,
+  roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
+});
+const matSolutionHi = new THREE.MeshPhysicalMaterial({
+  color: 0x9b7ed8, transparent: true, opacity: 0.4,
+  emissive: 0x9b7ed8, emissiveIntensity: 0.4,
+  roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
+});
+const matElectrode = new THREE.MeshStandardMaterial({
+  color: 0x667788, metalness: 0.85, roughness: 0.2
+});
+const matElectrodeHi = new THREE.MeshStandardMaterial({
+  color: 0x5cc4c4, metalness: 0.9, roughness: 0.15,
+  emissive: 0x5cc4c4, emissiveIntensity: 0.5
+});
+const matWire = new THREE.MeshStandardMaterial({
+  color: 0xc9a84c, metalness: 0.85, roughness: 0.25
+});
+const matWireHi = new THREE.MeshStandardMaterial({
+  color: 0xc9a84c, metalness: 0.9, roughness: 0.15,
+  emissive: 0xc9a84c, emissiveIntensity: 0.5
+});
+const matBulbGlass = new THREE.MeshPhysicalMaterial({
+  color: 0xffffff, transparent: true, opacity: 0.08,
+  roughness: 0.05, transmission: 0.9,
+  side: THREE.DoubleSide, depthWrite: false
+});
+const matFilament = new THREE.MeshStandardMaterial({
+  color: 0x886633, emissive: 0x443311, emissiveIntensity: 0.3
+});
+const matBulbBase = new THREE.MeshStandardMaterial({
+  color: 0x888888, metalness: 0.7, roughness: 0.4
+});
+
+const model = new THREE.Group();
+
+// ═══════════════════════════════════════════════════
+//  BEAKER (rectangular) — bottom at y=0, top at y=5
+// ═══════════════════════════════════════════════════
+const beakerW = 7, beakerD = 3.5, beakerH = 5, wallT = 0.15;
+
+const beakerShape = new THREE.Shape();
+beakerShape.moveTo(-beakerW / 2, -beakerD / 2);
+beakerShape.lineTo(beakerW / 2, -beakerD / 2);
+beakerShape.lineTo(beakerW / 2, beakerD / 2);
+beakerShape.lineTo(-beakerW / 2, beakerD / 2);
+beakerShape.lineTo(-beakerW / 2, -beakerD / 2);
+
+const innerHole = new THREE.Path();
+innerHole.moveTo(-beakerW / 2 + wallT, -beakerD / 2 + wallT);
+innerHole.lineTo(beakerW / 2 - wallT, -beakerD / 2 + wallT);
+innerHole.lineTo(beakerW / 2 - wallT, beakerD / 2 - wallT);
+innerHole.lineTo(-beakerW / 2 + wallT, beakerD / 2 - wallT);
+innerHole.lineTo(-beakerW / 2 + wallT, -beakerD / 2 + wallT);
+beakerShape.holes.push(innerHole);
+
+const beakerGeo = new THREE.ExtrudeGeometry(beakerShape, { depth: beakerH, bevelEnabled: false });
+const beaker = new THREE.Mesh(beakerGeo, matGlass);
+beaker.rotation.x = -Math.PI / 2;
+beaker.position.y = 0;
+beaker.name = '_glass';
+model.add(beaker);
+
+// Beaker bottom
+const bottomGeo = new THREE.BoxGeometry(beakerW, 0.15, beakerD);
+const bottom = new THREE.Mesh(bottomGeo, matGlass);
+bottom.position.y = 0.075;
+bottom.name = '_glass';
+model.add(bottom);
+
+// ═══════════════════════════════════════════════════
+//  SOLUTION — 70% fill: y=0.15 to y=3.5
+// ═══════════════════════════════════════════════════
+const solBottom = 0.15;
+const solTop = 3.5;
+const solH = solTop - solBottom;
+const solGeo = new THREE.BoxGeometry(beakerW - wallT * 2 - 0.05, solH, beakerD - wallT * 2 - 0.05);
+const solution = new THREE.Mesh(solGeo, matSolution);
+solution.position.y = solBottom + solH / 2;
+solution.name = 'solution';
+model.add(solution);
+
+// Solution surface shimmer
+const surfGeo = new THREE.PlaneGeometry(beakerW - wallT * 2, beakerD - wallT * 2);
+const surfMat = new THREE.MeshStandardMaterial({
+  color: 0x9b7ed8, transparent: true, opacity: 0.12,
+  side: THREE.DoubleSide, metalness: 0.5, roughness: 0.2
+});
+const surface = new THREE.Mesh(surfGeo, surfMat);
+surface.rotation.x = -Math.PI / 2;
+surface.position.y = solTop;
+surface.name = 'solution';
+model.add(surface);
+
+// ═══════════════════════════════════════════════════
+//  ELECTRODES — thin plates INSIDE beaker, extending above
+//  y=1 (inside beaker) to y=7 (above beaker top at y=5)
+// ═══════════════════════════════════════════════════
+const elecW = 0.15, elecD = 1.8, elecH_total = 6; // from y=1 to y=7
+const elecGeo = new THREE.BoxGeometry(elecW, elecH_total, elecD);
+
+const elecL = new THREE.Mesh(elecGeo, matElectrode);
+elecL.position.set(-2.2, 1 + elecH_total / 2, 0); // center at y=4
+elecL.name = 'electrode';
+model.add(elecL);
+
+const elecR = new THREE.Mesh(elecGeo.clone(), matElectrode);
+elecR.position.set(2.2, 1 + elecH_total / 2, 0); // center at y=4
+elecR.name = 'electrode';
+model.add(elecR);
+
+// ═══════════════════════════════════════════════════
+//  WIRES — from electrode tops (y=7) arching to bulb
+// ═══════════════════════════════════════════════════
+const wireR = 0.06;
+const wireCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-2.2, 7, 0),
+  new THREE.Vector3(-2.2, 8.5, 0),
+  new THREE.Vector3(-1.2, 10, 0),
+  new THREE.Vector3(0, 10.5, 0),
+  new THREE.Vector3(1.2, 10, 0),
+  new THREE.Vector3(2.2, 8.5, 0),
+  new THREE.Vector3(2.2, 7, 0),
+]);
+const wireGeo = new THREE.TubeGeometry(wireCurve, 64, wireR, 8, false);
+const wire = new THREE.Mesh(wireGeo, matWire);
+wire.name = 'wire';
+model.add(wire);
+
+// ═══════════════════════════════════════════════════
+//  LIGHT BULB at top center of wire arc
+// ═══════════════════════════════════════════════════
+const bulbGroup = new THREE.Group();
+bulbGroup.position.set(0, 10.5, 0);
+
+// Glass bulb
+const bulbGlassGeo = new THREE.SphereGeometry(0.55, 32, 32);
+const bulbGlass = new THREE.Mesh(bulbGlassGeo, matBulbGlass);
+bulbGlass.name = 'wire';
+bulbGroup.add(bulbGlass);
+
+// Base
+const bulbBaseGeo = new THREE.CylinderGeometry(0.25, 0.3, 0.4, 16);
+const bulbBase = new THREE.Mesh(bulbBaseGeo, matBulbBase);
+bulbBase.position.y = -0.6;
+bulbBase.name = 'wire';
+bulbGroup.add(bulbBase);
+
+// Filament
+const filCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(-0.12, -0.3, 0),
+  new THREE.Vector3(-0.08, 0.05, 0.05),
+  new THREE.Vector3(0, 0.2, -0.03),
+  new THREE.Vector3(0.08, 0.05, 0.05),
+  new THREE.Vector3(0.12, -0.3, 0),
+]);
+const filGeo = new THREE.TubeGeometry(filCurve, 20, 0.02, 6, false);
+const filament = new THREE.Mesh(filGeo, matFilament);
+filament.name = 'wire';
+bulbGroup.add(filament);
+
+// Bulb glow light (off by default)
+const bulbLight = new THREE.PointLight(0xffdd66, 0, 12);
+bulbLight.position.set(0, 0, 0);
+bulbGroup.add(bulbLight);
+
+// Bloom-like glow sphere (outer aura)
+const bloomGlowMat = new THREE.MeshBasicMaterial({
+  color: 0xffdd66, transparent: true, opacity: 0,
+  side: THREE.DoubleSide, depthWrite: false
+});
+const bloomGlow = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), bloomGlowMat);
+bloomGlow.name = '_glow';
+bulbGroup.add(bloomGlow);
+
+// Secondary larger glow
+const bloomGlow2Mat = new THREE.MeshBasicMaterial({
+  color: 0xffeeaa, transparent: true, opacity: 0,
+  side: THREE.DoubleSide, depthWrite: false
+});
+const bloomGlow2 = new THREE.Mesh(new THREE.SphereGeometry(2.0, 12, 12), bloomGlow2Mat);
+bloomGlow2.name = '_glow';
+bulbGroup.add(bloomGlow2);
+
+model.add(bulbGroup);
+
+// ═══════════════════════════════════════════════════
+//  GAS INLETS (tubes on sides extending above electrodes)
+// ═══════════════════════════════════════════════════
+const inletGeo = new THREE.CylinderGeometry(0.15, 0.15, 2.5, 12);
+const inletMatL = new THREE.MeshStandardMaterial({
+  color: 0x5cb85c, transparent: true, opacity: 0.3,
+  metalness: 0.3, roughness: 0.4
+});
+const inletL = new THREE.Mesh(inletGeo, inletMatL);
+inletL.position.set(-2.2, 7.5, 0);
+inletL.name = 'reactant';
+model.add(inletL);
+
+const inletR = new THREE.Mesh(inletGeo.clone(), inletMatL.clone());
+inletR.position.set(2.2, 7.5, 0);
+inletR.name = 'reactant';
+model.add(inletR);
+
+scene.add(model);
+
+// ═══════════════════════════════════════════════════
+//  LABELS (CSS2D)
+// ═══════════════════════════════════════════════════
+function mkLabel(text, pos, color, extraClass) {
+  const div = document.createElement('div');
+  div.className = 'label-3d' + (extraClass ? ' ' + extraClass : '');
+  div.textContent = text;
+  if (color) div.style.color = color;
+  const l = new CSS2DObject(div);
+  l.position.copy(pos);
+  model.add(l);
+  return l;
+}
+
+mkLabel('负极 (Pt)', new THREE.Vector3(-2.2, 2, 2.2), '#5cc4c4');
+mkLabel('正极 (Pt)', new THREE.Vector3(2.2, 2, 2.2), '#5cc4c4');
+mkLabel('H₂', new THREE.Vector3(-2.2, 9, 0), '#5cb85c');
+mkLabel('O₂', new THREE.Vector3(2.2, 9, 0), '#5cb85c');
+mkLabel('稀硫酸', new THREE.Vector3(0, 1.5, 2.2), '#9b7ed8');
+mkLabel('导线', new THREE.Vector3(1.8, 9.5, 0), '#c9a84c');
+mkLabel('灯泡', new THREE.Vector3(0, 11.8, 0), '#ffdd66');
+
+const titleLabel = mkLabel('氢氧燃料电池', new THREE.Vector3(0, -1, 0), '#5cc4c4');
+titleLabel.element.className = 'label-3d title';
+
+// Ion labels (follow ion groups, created as CSS2D objects)
+const hIonLabel = mkLabel('H\u207A', new THREE.Vector3(0, 2, 0), '#ff4466', 'ion-label ion-h');
+const sIonLabel = mkLabel('SO\u2084\u00B2\u207B', new THREE.Vector3(0, 1.2, 0), '#4466ff', 'ion-label ion-s');
+hIonLabel.visible = false;
+sIonLabel.visible = false;
+
+// ═══════════════════════════════════════════════════
+//  PREMIUM LIGHTING — 3-point + accents
+// ═══════════════════════════════════════════════════
+// Ambient
+scene.add(new THREE.AmbientLight(0x334466, 0.8));
+
+// Key light (main)
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+keyLight.position.set(5, 12, 8);
+scene.add(keyLight);
+
+// Fill light (softer, from opposite side)
+const fillLight = new THREE.DirectionalLight(0x8899bb, 0.6);
+fillLight.position.set(-6, 6, -4);
+scene.add(fillLight);
+
+// Rim light (behind, for edge definition)
+const rimLight = new THREE.DirectionalLight(0x5588cc, 0.8);
+rimLight.position.set(0, 3, -10);
+scene.add(rimLight);
+
+// Accent point lights
+const accentCyan = new THREE.PointLight(0x5cc4c4, 1.5, 25);
+accentCyan.position.set(-5, 4, 5);
+scene.add(accentCyan);
+
+const accentPurple = new THREE.PointLight(0x9b7ed8, 1, 20);
+accentPurple.position.set(5, 0, 5);
+scene.add(accentPurple);
+
+const accentGold = new THREE.PointLight(0xc9a84c, 0.6, 15);
+accentGold.position.set(0, 12, -5);
+scene.add(accentGold);
+
+// ═══════════════════════════════════════════════════
+//  PARTICLES — Electrons, Ions, Gas Bubbles
+// ═══════════════════════════════════════════════════
+let particlesOn = false;
+
+// --- Electron particles along wire ---
+const eParticles = [];
+const electronCount = 18;
+for (let i = 0; i < electronCount; i++) {
+  // Main sphere
+  const eMat = new THREE.MeshBasicMaterial({
+    color: 0xffcc44, transparent: true, opacity: 0.9
+  });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), eMat);
+
+  // Glow sprite around electron
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0xffcc44, transparent: true, opacity: 0.25,
+    depthWrite: false, side: THREE.DoubleSide
+  });
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 6), glowMat);
+  m.add(glow);
+
+  m.userData = {
+    t: i / electronCount, // evenly distributed
+    speed: 0.002 + Math.random() * 0.001
+  };
+  m.visible = false;
+  scene.add(m);
+  eParticles.push(m);
+}
+
+// --- Ion particles in solution ---
+const iParticles = [];
+const hIonCount = 10; // H+ ions: RED, move LEFT->RIGHT (toward 正极)
+const sIonCount = 7;  // SO4^2- ions: BLUE, move RIGHT->LEFT (toward 负极)
+
+// H+ ions (red/pink, small, move left to right)
+for (let i = 0; i < hIonCount; i++) {
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0xff4466, transparent: true, opacity: 0.85
+  });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), mat);
+
+  // Glow
+  const gMat = new THREE.MeshBasicMaterial({
+    color: 0xff4466, transparent: true, opacity: 0.2,
+    depthWrite: false
+  });
+  m.add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 6), gMat));
+
+  m.userData = {
+    t: Math.random(), // 0..1 maps x from -3 to 3
+    speed: 0.001 + Math.random() * 0.0008, // positive = left to right
+    y: 0.5 + Math.random() * 2.8, // within solution (0.3 - 3.5)
+    z: (Math.random() - 0.5) * 1.4,
+    isH: true
+  };
+  m.visible = false;
+  scene.add(m);
+  iParticles.push(m);
+}
+
+// SO4^2- ions (blue/indigo, larger, move right to left)
+for (let i = 0; i < sIonCount; i++) {
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x4466ff, transparent: true, opacity: 0.85
+  });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.13, 8, 8), mat);
+
+  // Glow
+  const gMat = new THREE.MeshBasicMaterial({
+    color: 0x4466ff, transparent: true, opacity: 0.2,
+    depthWrite: false
+  });
+  m.add(new THREE.Mesh(new THREE.SphereGeometry(0.24, 6, 6), gMat));
+
+  m.userData = {
+    t: Math.random(),
+    speed: -(0.0006 + Math.random() * 0.0005), // negative = right to left
+    y: 0.5 + Math.random() * 2.8,
+    z: (Math.random() - 0.5) * 1.4,
+    isH: false
+  };
+  m.visible = false;
+  scene.add(m);
+  iParticles.push(m);
+}
+
+// --- H2 Gas bubbles (green-tinted, rising from LEFT electrode only) ---
+const bubbles = [];
+for (let i = 0; i < 12; i++) {
+  const radius = 0.03 + Math.random() * 0.05;
+  const bGeo = new THREE.SphereGeometry(radius, 8, 8);
+  const bMat = new THREE.MeshBasicMaterial({
+    color: 0x66ff88, transparent: true, opacity: 0.4
+  });
+  const b = new THREE.Mesh(bGeo, bMat);
+  b.userData = {
+    baseX: -2.2 + (Math.random() - 0.5) * 0.5,
+    baseZ: (Math.random() - 0.5) * 1.0,
+    speed: 0.006 + Math.random() * 0.01,
+    offset: Math.random() * 10,
+    y: Math.random() * (solH - 0.3)
+  };
+  b.name = 'reactant';
+  scene.add(b);
+  bubbles.push(b);
+}
+
+// ═══════════════════════════════════════════════════
+//  PARTICLE UPDATE
+// ═══════════════════════════════════════════════════
+function updateParticles(time) {
+  // Gas bubbles always animate (H2 from left electrode in solution)
+  bubbles.forEach(b => {
+    b.userData.y += b.userData.speed;
+    // Reset when reaching solution surface
+    if (b.userData.y > solH - 0.3) b.userData.y = 0;
+    const by = solBottom + 0.15 + b.userData.y;
+    b.position.set(
+      b.userData.baseX + Math.sin(time * 2 + b.userData.offset) * 0.08,
+      by,
+      b.userData.baseZ + Math.cos(time * 1.5 + b.userData.offset) * 0.06
+    );
+    b.material.opacity = 0.15 + (b.userData.y / solH) * 0.45;
+  });
+
+  if (!particlesOn) return;
+
+  // Electron particles along wire curve
+  eParticles.forEach(p => {
+    p.visible = true;
+    p.userData.t += p.userData.speed;
+    if (p.userData.t > 1) p.userData.t -= 1;
+    const pt = wireCurve.getPointAt(p.userData.t);
+    p.position.copy(pt);
+    const s = 0.7 + Math.sin(time * 6 + p.userData.t * 20) * 0.35;
+    p.scale.setScalar(s);
+  });
+
+  // Ion particles in solution
+  let hCenterX = 0, hCount = 0;
+  let sCenterX = 0, sCount = 0;
+
+  iParticles.forEach(p => {
+    p.visible = true;
+    p.userData.t += p.userData.speed;
+    // Wrap around
+    if (p.userData.t > 1) p.userData.t -= 1;
+    if (p.userData.t < 0) p.userData.t += 1;
+    // Map t to x: -3 to 3 (within beaker interior)
+    const x = -3 + p.userData.t * 6;
+    const y = p.userData.y + Math.sin(time * 1.5 + p.userData.t * 8) * 0.12;
+    const z = p.userData.z + Math.cos(time * 1.2 + x) * 0.08;
+    p.position.set(x, y, z);
+
+    // Track centers for labels
+    if (p.userData.isH) {
+      hCenterX += x;
+      hCount++;
+    } else {
+      sCenterX += x;
+      sCount++;
+    }
+  });
+
+  // Update ion label positions (follow center of each ion group)
+  if (hCount > 0) {
+    hIonLabel.position.set(hCenterX / hCount, solTop + 0.3, 0);
+  }
+  if (sCount > 0) {
+    sIonLabel.position.set(sCenterX / sCount, solBottom + 0.3, 0);
+  }
+}
+
+// ═══════════════════════════════════════════════════
+//  BULB GLOW CONTROL
+// ═══════════════════════════════════════════════════
+let bulbGlowing = false;
+
+function setBulbGlow(on) {
+  bulbGlowing = on;
+  // Point light
+  bulbLight.intensity = on ? 5 : 0;
+  bulbLight.color.set(on ? 0xffdd66 : 0xffdd66);
+
+  // Filament
+  matFilament.emissive.set(on ? 0xffcc44 : 0x443311);
+  matFilament.emissiveIntensity = on ? 2.0 : 0.3;
+
+  // Bulb glass
+  matBulbGlass.opacity = on ? 0.22 : 0.08;
+  matBulbGlass.emissive = new THREE.Color(on ? 0xffdd66 : 0x000000);
+  matBulbGlass.emissiveIntensity = on ? 0.5 : 0;
+
+  // Bloom glow spheres
+  bloomGlowMat.opacity = on ? 0.08 : 0;
+  bloomGlow2Mat.opacity = on ? 0.03 : 0;
+}
+
+// ═══════════════════════════════════════════════════
+//  RAYCASTING — click to select parts
+// ═══════════════════════════════════════════════════
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+canvas.addEventListener('click', e => {
+  const r = canvas.getBoundingClientRect();
+  mouse.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+  mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+  raycaster.setFromCamera(mouse, camera);
+  const hits = raycaster.intersectObjects(model.children, true);
+  for (const h of hits) {
+    const n = h.object.name;
+    if (n === 'electrode') { zoomTo('electrode'); return; }
+    if (n === 'reactant') { zoomTo('reactant'); return; }
+    if (n === 'wire') { zoomTo('econductor'); return; }
+    if (n === 'solution') { zoomTo('iconductor'); return; }
+  }
+});
+
+// ═══════════════════════════════════════════════════
+//  CAMERA ANIMATION
+// ═══════════════════════════════════════════════════
+let camAnim = null;
+const overviewCam = { pos: new THREE.Vector3(0, 4, 22), look: new THREE.Vector3(0, 4, 0) };
+const views = {
+  electrode: { pos: new THREE.Vector3(-4, 4, 7), look: new THREE.Vector3(-2.2, 3, 0) },
+  reactant: { pos: new THREE.Vector3(-3, 8, 6), look: new THREE.Vector3(0, 6, 0) },
+  econductor: { pos: new THREE.Vector3(3, 11, 9), look: new THREE.Vector3(0, 9.5, 0) },
+  iconductor: { pos: new THREE.Vector3(0, 2, 10), look: new THREE.Vector3(0, 2, 0) },
+};
+
+function animCam(to, lookAt) {
+  camAnim = {
+    fromPos: camera.position.clone(),
+    toPos: to.clone(),
+    fromLook: controls.target.clone(),
+    toLook: lookAt.clone(),
+    t: 0
+  };
+}
+
+function updateCamAnim() {
+  if (!camAnim) return;
+  camAnim.t += 0.025;
+  const t = camAnim.t < 0.5
+    ? 4 * camAnim.t ** 3
+    : 1 - (-2 * camAnim.t + 2) ** 3 / 2;
+  camera.position.lerpVectors(camAnim.fromPos, camAnim.toPos, t);
+  controls.target.lerpVectors(camAnim.fromLook, camAnim.toLook, t);
+  if (camAnim.t >= 1) camAnim = null;
+}
+
+// ═══════════════════════════════════════════════════
+//  HIGHLIGHT MODES
+// ═══════════════════════════════════════════════════
+function clearHi() {
+  [elecL, elecR].forEach(e => e.material = matElectrode);
+  solution.material = matSolution;
+  surface.material = surfMat;
+  wire.material = matWire;
+  setBulbGlow(false);
+}
+
+function hiElectrode() {
+  [elecL, elecR].forEach(e => e.material = matElectrodeHi);
+}
+
+function hiSolution() {
+  solution.material = matSolutionHi;
+}
+
+function hiWire() {
+  wire.material = matWireHi;
+  setBulbGlow(true);
+}
+
+// ═══════════════════════════════════════════════════
+//  STEP NAVIGATION
+// ═══════════════════════════════════════════════════
+let step = 0;
+const keys = ['overview', 'electrode', 'reactant', 'econductor', 'iconductor'];
+const names = ['总览', '电极材料', '电极反应物', '电子导体', '离子导体'];
+
+function showPanel(key) {
+  document.getElementById('panelPlaceholder').style.display = 'none';
+  document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
+  const el = document.getElementById('detail-' + key);
+  if (el) el.classList.add('visible');
+}
+
+function zoomTo(key) {
+  const i = keys.indexOf(key);
+  if (i >= 0) step = i;
+  updateUI();
+  showPanel(key);
+  clearHi();
+  if (key === 'electrode') hiElectrode();
+  if (key === 'iconductor') hiSolution();
+  if (key === 'econductor') hiWire();
+  const v = views[key];
+  if (v) animCam(v.pos, v.look);
+  document.getElementById('modeText').textContent = names[step] + ' · 点击其他部件切换';
+}
+
+function goOverview() {
+  step = 0;
+  updateUI();
+  clearHi();
+  animCam(overviewCam.pos, overviewCam.look);
+  document.getElementById('panelPlaceholder').style.display = 'flex';
+  document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
+  document.getElementById('modeText').textContent = '总览模式 · 点击部件查看详情 · 拖拽旋转';
+}
+
+function nextStep() {
+  if (step < 4) { step++; zoomTo(keys[step]); }
+}
+
+function prevStep() {
+  if (step > 0) {
+    step--;
+    step === 0 ? goOverview() : zoomTo(keys[step]);
+  }
+}
+
+function goToStep(s) {
+  s === 0 ? goOverview() : (step = s, zoomTo(keys[s]));
+}
+
+function updateUI() {
+  document.querySelectorAll('.step-dot').forEach((d, i) => d.classList.toggle('active', i === step));
+  document.getElementById('stepLabel').textContent = names[step];
+}
+
+// ═══════════════════════════════════════════════════
+//  KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextStep(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevStep(); }
+  if (e.key === 'Escape') goOverview();
+});
+
+// ═══════════════════════════════════════════════════
+//  TOGGLE CONTROLS
+// ═══════════════════════════════════════════════════
+function toggleParticles() {
+  particlesOn = !particlesOn;
+  document.getElementById('btnParticle').classList.toggle('active', particlesOn);
+  document.getElementById('btnParticle').textContent = particlesOn ? '停止粒子' : '启动粒子';
+
+  if (particlesOn) {
+    setBulbGlow(true);
+    hIonLabel.visible = true;
+    sIonLabel.visible = true;
+  }
+  if (!particlesOn) {
+    eParticles.forEach(p => p.visible = false);
+    iParticles.forEach(p => p.visible = false);
+    hIonLabel.visible = false;
+    sIonLabel.visible = false;
+    if (step !== 3) setBulbGlow(false);
+  }
+}
+
+function toggleAutoRotate() {
+  controls.autoRotate = !controls.autoRotate;
+  document.getElementById('btnRotate').classList.toggle('active', controls.autoRotate);
+}
+
+// ═══════════════════════════════════════════════════
+//  RENDER LOOP
+// ═══════════════════════════════════════════════════
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
+  controls.update();
+  updateCamAnim();
+  updateParticles(t);
+
+  // Subtle solution surface wave
+  surface.position.y = solTop + Math.sin(t * 0.8) * 0.02;
+
+  // Bulb glow pulsation when active
+  if (bulbGlowing) {
+    const pulse = 0.85 + Math.sin(t * 3) * 0.15;
+    bulbLight.intensity = 5 * pulse;
+    bloomGlowMat.opacity = 0.08 * pulse;
+    bloomGlow2Mat.opacity = 0.03 * pulse;
+  }
+
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+animate();
+
+// ═══════════════════════════════════════════════════
+//  EXPOSE TO WINDOW (for onclick handlers)
+// ═══════════════════════════════════════════════════
+window._prevStep = prevStep;
+window._nextStep = nextStep;
+window._goOverview = goOverview;
+window._goToStep = goToStep;
+window._toggleParticles = toggleParticles;
+window._toggleAutoRotate = toggleAutoRotate;
+</script>
+</body>
+</html>
