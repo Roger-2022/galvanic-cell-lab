@@ -677,31 +677,31 @@
     <div class="material-tray">
       <div class="task-card">
         <div class="task-card-label">实验任务</div>
-        <p>基于以下氧化还原反应，从右侧材料中选择合适的组件，设计一个能点亮灯泡的原电池装置：</p>
-        <div class="reaction">Fe + 2H⁺ → Fe²⁺ + H₂↑</div>
+        <p>基于以下氧化还原反应，从下列材料中选择合适的组件，设计一个能点亮灯泡的原电池装置：</p>
+        <div class="reaction">Fe + 2H⁺ = Fe²⁺ + H₂↑</div>
       </div>
 
       <div class="tray-section">
         <div class="tray-label">电极材料</div>
         <div class="material-item" data-type="cathode" data-value="Fe" onclick="selectMaterial(this, 'neg_electrode')">
           <div class="mat-icon metal">Fe</div>
-          <div class="mat-info"><div class="mat-name">铁片</div><div class="mat-desc">活泼金属，能导电</div></div>
+          <div class="mat-info"><div class="mat-name">铁片</div></div></div>
         </div>
         <div class="material-item" data-type="cathode" data-value="Cu" onclick="selectMaterial(this, 'pos_electrode')">
           <div class="mat-icon metal">Cu</div>
-          <div class="mat-info"><div class="mat-name">铜片</div><div class="mat-desc">较不活泼金属，能导电</div></div>
+          <div class="mat-info"><div class="mat-name">铜片</div></div>
         </div>
         <div class="material-item" data-type="cathode" data-value="Zn" onclick="selectMaterial(this, 'neg_electrode')">
           <div class="mat-icon metal">Zn</div>
-          <div class="mat-info"><div class="mat-name">锌片</div><div class="mat-desc">活泼金属，能导电</div></div>
+          <div class="mat-info"><div class="mat-name">锌片</div></div>
         </div>
         <div class="material-item" data-type="cathode" data-value="C" onclick="selectMaterial(this, 'pos_electrode')">
           <div class="mat-icon metal">C</div>
-          <div class="mat-info"><div class="mat-name">石墨棒</div><div class="mat-desc">非金属导体，化学性质稳定</div></div>
+          <div class="mat-info"><div class="mat-name">石墨棒</div></div>
         </div>
         <div class="material-item" data-type="cathode" data-value="glass" onclick="selectMaterial(this, 'pos_electrode')">
           <div class="mat-icon metal" style="opacity:0.5">玻</div>
-          <div class="mat-info"><div class="mat-name">玻璃棒</div><div class="mat-desc">绝缘体，不导电</div></div>
+          <div class="mat-info"><div class="mat-name">玻璃棒</div></div>
         </div>
       </div>
 
@@ -709,23 +709,23 @@
         <div class="tray-label">电解质溶液</div>
         <div class="material-item" data-type="solution" data-value="HCl" onclick="selectMaterial(this, 'solution')">
           <div class="mat-icon solution">HCl</div>
-          <div class="mat-info"><div class="mat-name">稀盐酸</div><div class="mat-desc">含H⁺和Cl⁻</div></div>
+          <div class="mat-info"><div class="mat-name">稀盐酸</div></div>
         </div>
         <div class="material-item" data-type="solution" data-value="H2SO4" onclick="selectMaterial(this, 'solution')">
           <div class="mat-icon solution">H₂SO₄</div>
-          <div class="mat-info"><div class="mat-name">稀硫酸</div><div class="mat-desc">含H⁺和SO₄²⁻</div></div>
+          <div class="mat-info"><div class="mat-name">稀硫酸</div></div>
         </div>
         <div class="material-item" data-type="solution" data-value="NaCl" onclick="selectMaterial(this, 'solution')">
           <div class="mat-icon solution">NaCl</div>
-          <div class="mat-info"><div class="mat-name">氯化钠溶液</div><div class="mat-desc">含Na⁺和Cl⁻</div></div>
+          <div class="mat-info"><div class="mat-name">氯化钠溶液</div></div>
         </div>
         <div class="material-item" data-type="solution" data-value="ethanol" onclick="selectMaterial(this, 'solution')">
           <div class="mat-icon solution" style="opacity:0.5">醇</div>
-          <div class="mat-info"><div class="mat-name">无水乙醇</div><div class="mat-desc">有机溶剂，不导电</div></div>
+          <div class="mat-info"><div class="mat-name">无水乙醇</div></div>
         </div>
         <div class="material-item" data-type="solution" data-value="water" onclick="selectMaterial(this, 'solution')">
           <div class="mat-icon solution" style="opacity:0.5">H₂O</div>
-          <div class="mat-info"><div class="mat-name">蒸馏水</div><div class="mat-desc">纯水，几乎不导电</div></div>
+          <div class="mat-info"><div class="mat-name">蒸馏水</div></div>
         </div>
       </div>
     </div>
@@ -1166,9 +1166,9 @@ function showSuccessOverlay(data) {
   const lastAttempt = data.attempts[data.attempts.length - 1];
   document.getElementById('successDetail').innerHTML = `
     <div style="margin-bottom:0.5rem;font-weight:600;color:var(--green);">你的设计方案：</div>
-    <div>负极：${lastAttempt.negName}（Fe失电子，发生氧化反应）</div>
-    <div>正极：${lastAttempt.posName}（H⁺得电子，发生还原反应）</div>
-    <div>溶液：${lastAttempt.solName}（提供H⁺，传导离子）</div>
+    <div>负极：${lastAttempt.negName}</div>
+    <div>正极：${lastAttempt.posName}</div>
+    <div>溶液：${lastAttempt.solName}</div>
     <div style="margin-top:0.6rem;color:var(--text-dim);">经过 ${data.attemptsUsed} 次尝试成功</div>
   `;
   overlay.classList.add('active');
@@ -1227,7 +1227,6 @@ function renderHistory(data) {
       <div class="history-choices">
         负极：${attempt.negName} &nbsp;|&nbsp; 正极：${attempt.posName} &nbsp;|&nbsp; 溶液：${attempt.solName}
       </div>
-      <div class="history-feedback">${attempt.feedback}</div>
     `;
     list.appendChild(item);
   });
