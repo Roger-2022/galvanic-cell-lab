@@ -860,10 +860,24 @@ async function detectServer() {
 }
 
 function getGroupData(groupId) {
-  // Synchronous read from localStorage (server sync is async overlay)
   const key = `galvanic_lab_group_${groupId}`;
   const data = localStorage.getItem(key);
   return data ? JSON.parse(data) : { attempts: [], attemptsUsed: 0, success: false };
+}
+
+// Always fetch fresh data from server
+async function fetchGroupData(groupId) {
+  if (useServer) {
+    try {
+      const r = await fetch(API_BASE + '/api/group?id=' + groupId);
+      if (r.ok) {
+        const d = await r.json();
+        localStorage.setItem(`galvanic_lab_group_${groupId}`, JSON.stringify(d));
+        return d;
+      }
+    } catch {}
+  }
+  return getGroupData(groupId);
 }
 
 function saveGroupData(groupId, data) {
@@ -913,27 +927,27 @@ function initGroupScreen() {
 }
 
 async function enterLab(groupId) {
+  // Lock to this group (stored in sessionStorage so it persists during the session)
+  const lockedGroup = sessionStorage.getItem('lockedGroup');
+  if (lockedGroup && lockedGroup !== String(groupId)) {
+    alert('你已经加入了第' + lockedGroup + '组，不能切换到其他组。');
+    return;
+  }
+
   currentGroup = groupId;
+  sessionStorage.setItem('lockedGroup', groupId);
   document.getElementById('groupScreen').classList.remove('active');
   document.getElementById('labScreen').classList.add('active');
   document.getElementById('groupBadge').textContent = `第 ${groupId} 组`;
 
-  // Always try to fetch from server (server is authoritative)
-  if (useServer) {
-    try {
-      const res = await fetch(API_BASE + '/api/group?id=' + groupId);
-      if (res.ok) {
-        const serverData = await res.json();
-        // Always use server data (even if empty - server is truth)
-        localStorage.setItem(`galvanic_lab_group_${groupId}`, JSON.stringify(serverData));
-      }
-    } catch {}
-  }
-
-  const data = getGroupData(groupId);
+  // Always fetch fresh data from server
+  const data = await fetchGroupData(groupId);
   updateLabUI(data);
   renderHistory(data);
   resetChoices();
+
+  // Hide "切换组" button after locking
+  document.querySelector('.back-btn[onclick="backToGroup()"]')?.remove();
 
   if (data.success) {
     showSuccessOverlay(data);
@@ -943,6 +957,12 @@ async function enterLab(groupId) {
 }
 
 function backToGroup() {
+  // Only allow if not locked
+  const lockedGroup = sessionStorage.getItem('lockedGroup');
+  if (lockedGroup) {
+    alert('你已经锁定在第' + lockedGroup + '组，无法切换。');
+    return;
+  }
   document.getElementById('labScreen').classList.remove('active');
   document.getElementById('groupScreen').classList.add('active');
   currentGroup = null;
@@ -1048,8 +1068,9 @@ function resetChoices() {
 }
 
 // ══════════ Submit & Evaluation ══════════
-function submitDesign() {
-  const data = getGroupData(currentGroup);
+async function submitDesign() {
+  // Fetch latest from server to prevent stale data
+  const data = await fetchGroupData(currentGroup);
   if (data.attemptsUsed >= CONFIG.maxAttempts || data.success) return;
 
   const neg = choices.neg_electrode?.value;
@@ -1279,7 +1300,14 @@ function renderHistory(data) {
   }
 
   document.getElementById('cooldownDisplay').textContent = CONFIG.cooldownSeconds + 's';
-  initGroupScreen();
+
+  // Auto-enter locked group if already selected this session
+  const lockedGroup = sessionStorage.getItem('lockedGroup');
+  if (lockedGroup) {
+    enterLab(parseInt(lockedGroup));
+  } else {
+    initGroupScreen();
+  }
 })();
 
 // Question functions removed — handled in second script block after DOM
