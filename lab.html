@@ -653,8 +653,24 @@
   <div class="group-title">选择你的小组</div>
   <div class="group-subtitle">请在下方选择你所在的组号，进入虚拟实验室</div>
   <div class="group-grid" id="groupGrid"></div>
-  <div style="color:var(--text-dim);font-size:0.72rem;margin-top:0.5rem;">
-    <a href="/" style="color:var(--text-dim);text-decoration:none;">← 返回主页</a>
+  <div style="display:flex;align-items:center;gap:1rem;margin-top:0.8rem;">
+    <a href="/" style="color:var(--text-dim);font-size:0.72rem;text-decoration:none;">← 返回主页</a>
+    <button id="adminToggle" onclick="document.getElementById('adminLogin').style.display='flex'" style="
+      color:var(--text-dim);font-size:0.6rem;background:none;border:1px solid var(--border);
+      padding:0.2rem 0.6rem;border-radius:4px;cursor:pointer;font-family:inherit;opacity:0.4;
+    ">管理员</button>
+  </div>
+  <!-- Admin login -->
+  <div id="adminLogin" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#0d1220;border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:1.5rem;width:300px;text-align:center;">
+      <div style="font-size:0.9rem;font-weight:600;margin-bottom:1rem;">管理员登录</div>
+      <input id="adminPwd" type="password" placeholder="输入管理员密码" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-panel);color:var(--text);font-size:0.85rem;font-family:inherit;outline:none;margin-bottom:0.6rem;">
+      <div id="adminError" style="color:var(--red);font-size:0.72rem;min-height:1em;margin-bottom:0.4rem;"></div>
+      <div style="display:flex;gap:0.5rem;">
+        <button onclick="document.getElementById('adminLogin').style.display='none'" style="flex:1;padding:0.45rem;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-dim);cursor:pointer;font-family:inherit;font-size:0.78rem;">取消</button>
+        <button onclick="tryAdminLogin()" style="flex:1;padding:0.45rem;border:none;border-radius:8px;background:var(--blue);color:white;cursor:pointer;font-family:inherit;font-size:0.78rem;">确认</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -927,15 +943,17 @@ function initGroupScreen() {
 }
 
 async function enterLab(groupId) {
-  // Lock to this group (stored in sessionStorage so it persists during the session)
-  const lockedGroup = sessionStorage.getItem('lockedGroup');
-  if (lockedGroup && lockedGroup !== String(groupId)) {
-    alert('你已经加入了第' + lockedGroup + '组，不能切换到其他组。');
-    return;
+  // Admin can freely switch groups; students are locked
+  if (!isAdmin) {
+    const lockedGroup = sessionStorage.getItem('lockedGroup');
+    if (lockedGroup && lockedGroup !== String(groupId)) {
+      alert('你已经加入了第' + lockedGroup + '组，不能切换到其他组。');
+      return;
+    }
+    sessionStorage.setItem('lockedGroup', groupId);
   }
 
   currentGroup = groupId;
-  sessionStorage.setItem('lockedGroup', groupId);
   document.getElementById('groupScreen').classList.remove('active');
   document.getElementById('labScreen').classList.add('active');
   document.getElementById('groupBadge').textContent = `第 ${groupId} 组`;
@@ -946,9 +964,9 @@ async function enterLab(groupId) {
   renderHistory(data);
   resetChoices();
 
-  // Change "切换组" to "返回首页" after locking
+  // Admin keeps "切换组"; students get "返回首页"
   var backBtn = document.querySelector('.back-btn[onclick="backToGroup()"]');
-  if (backBtn) {
+  if (backBtn && !isAdmin) {
     backBtn.setAttribute('onclick', "location.href='/'");
     backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回';
   }
@@ -961,14 +979,19 @@ async function enterLab(groupId) {
 }
 
 function backToGroup() {
-  // Only allow if not locked
-  const lockedGroup = sessionStorage.getItem('lockedGroup');
-  if (lockedGroup) {
-    alert('你已经锁定在第' + lockedGroup + '组，无法切换。');
-    return;
+  if (!isAdmin) {
+    const lockedGroup = sessionStorage.getItem('lockedGroup');
+    if (lockedGroup) {
+      alert('你已经锁定在第' + lockedGroup + '组，无法切换。');
+      return;
+    }
   }
   document.getElementById('labScreen').classList.remove('active');
   document.getElementById('groupScreen').classList.add('active');
+  // Clear overlays
+  document.getElementById('successOverlay')?.classList.remove('active');
+  document.getElementById('failedOverlay')?.classList.remove('active');
+  document.getElementById('cooldownOverlay')?.classList.remove('active');
   currentGroup = null;
   initGroupScreen();
 }
@@ -1342,6 +1365,43 @@ function renderHistory(data) {
     }, 3000);
   }
 })();
+
+// ══════════ ADMIN MODE ══════════
+const _adminHash = 'd42add9909950507d55cf2ae088015fdc938420e96a40050ab1e91824df17356';
+let isAdmin = false;
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+window.tryAdminLogin = async function() {
+  const pwd = document.getElementById('adminPwd').value;
+  if (!pwd) return;
+  const hash = await sha256(pwd);
+  if (hash === _adminHash) {
+    isAdmin = true;
+    sessionStorage.setItem('isAdmin', '1');
+    sessionStorage.removeItem('lockedGroup');
+    document.getElementById('adminLogin').style.display = 'none';
+    document.getElementById('adminToggle').textContent = '管理员模式';
+    document.getElementById('adminToggle').style.opacity = '1';
+    document.getElementById('adminToggle').style.color = '#c9a84c';
+    document.getElementById('adminToggle').style.borderColor = '#c9a84c';
+    alert('管理员模式已启用。你可以自由切换各组查看和测试。');
+  } else {
+    document.getElementById('adminError').textContent = '密码错误';
+    document.getElementById('adminPwd').value = '';
+  }
+};
+
+// Restore admin mode from session
+if (sessionStorage.getItem('isAdmin') === '1') {
+  isAdmin = true;
+  sessionStorage.removeItem('lockedGroup'); // Admin is never locked
+  var at = document.getElementById('adminToggle');
+  if (at) { at.textContent = '管理员模式'; at.style.opacity = '1'; at.style.color = '#c9a84c'; at.style.borderColor = '#c9a84c'; }
+}
 
 // Question functions removed — handled in second script block after DOM
 </script>
