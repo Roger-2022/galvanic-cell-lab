@@ -569,15 +569,21 @@ function resetAllGroups() {
   refreshDashboard();
 }
 
-function clearAllData() {
-  if (!confirm('确认清除所有数据和设置？不可撤销。')) return;
+async function clearAllData() {
+  if (!confirm('确认清除所有数据？所有学生将回到选组状态。')) return;
+  if (useServer) {
+    await fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})}).catch(()=>{});
+    await fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
+    // Set reset signal so student devices unlock
+    await fetch(API_BASE+'/api/group',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:'_reset_signal',data:{time:Date.now()}})}).catch(()=>{});
+  }
   for (let i = 1; i <= 30; i++) localStorage.removeItem(`galvanic_lab_group_${i}`);
   localStorage.removeItem('galvanic_lab_config');
-  if (useServer) {
-    fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({all:true})}).catch(()=>{});
-    fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
-  }
-  location.reload();
+  serverGroups = {};
+  serverQuestions = [];
+  refreshDashboard();
+  refreshQuestions();
+  alert('已清除所有数据。学生设备将在几秒内自动回到选组页面。');
 }
 
 // ═══════════ DETAIL MODAL ═══════════

@@ -1312,6 +1312,35 @@ function renderHistory(data) {
   } else {
     initGroupScreen();
   }
+
+  // Poll for teacher reset signal (every 3 seconds)
+  if (useServer) {
+    let lastResetTime = 0;
+    setInterval(async () => {
+      try {
+        const r = await fetch(API_BASE + '/api/group?id=_reset_signal');
+        if (r.ok) {
+          const d = await r.json();
+          if (d && d.time && d.time > lastResetTime) {
+            if (lastResetTime > 0) {
+              // Teacher triggered reset — unlock group and go back to selection
+              sessionStorage.removeItem('lockedGroup');
+              currentGroup = null;
+              document.getElementById('labScreen')?.classList.remove('active');
+              document.getElementById('groupScreen')?.classList.add('active');
+              // Clear overlays
+              document.getElementById('successOverlay')?.classList.remove('active');
+              document.getElementById('failedOverlay')?.classList.remove('active');
+              document.getElementById('cooldownOverlay')?.classList.remove('active');
+              initGroupScreen();
+              alert('教师已重置实验，请重新选择组别。');
+            }
+            lastResetTime = d.time;
+          }
+        }
+      } catch {}
+    }, 3000);
+  }
 })();
 
 // Question functions removed — handled in second script block after DOM
