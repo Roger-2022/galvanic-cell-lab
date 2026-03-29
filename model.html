@@ -265,12 +265,12 @@ const matSolutionHi = new THREE.MeshPhysicalMaterial({
   roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
 });
 const matElectrode = new THREE.MeshStandardMaterial({
-  color: 0xc0c8d0, metalness: 0.95, roughness: 0.15,
-  emissive: 0x222830, emissiveIntensity: 0.3
+  color: 0xd8dde4, metalness: 0.3, roughness: 0.4,
+  emissive: 0x8899aa, emissiveIntensity: 0.5
 });
 const matElectrodeHi = new THREE.MeshStandardMaterial({
-  color: 0x88dddd, metalness: 0.95, roughness: 0.1,
-  emissive: 0x5cc4c4, emissiveIntensity: 0.5
+  color: 0xaaeedd, metalness: 0.3, roughness: 0.3,
+  emissive: 0x5cc4c4, emissiveIntensity: 0.6
 });
 const matWire = new THREE.MeshStandardMaterial({
   color: 0xc9a84c, metalness: 0.85, roughness: 0.25
@@ -497,36 +497,46 @@ sIonLabel.visible = false;
 // ═══════════════════════════════════════════════════
 //  PREMIUM LIGHTING — 3-point + accents
 // ═══════════════════════════════════════════════════
-// Ambient
-scene.add(new THREE.AmbientLight(0x334466, 0.8));
+// Ambient (bright enough to see everything)
+scene.add(new THREE.AmbientLight(0x667788, 1.5));
 
-// Key light (main)
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
-keyLight.position.set(5, 12, 8);
+// Key light (main, strong white from front-top)
+const keyLight = new THREE.DirectionalLight(0xffffff, 2);
+keyLight.position.set(3, 10, 10);
 scene.add(keyLight);
 
-// Fill light (softer, from opposite side)
-const fillLight = new THREE.DirectionalLight(0x8899bb, 0.6);
-fillLight.position.set(-6, 6, -4);
+// Fill light (from left, illuminates left electrode)
+const fillLight = new THREE.DirectionalLight(0xaabbdd, 1.2);
+fillLight.position.set(-8, 5, 6);
 scene.add(fillLight);
 
-// Rim light (behind, for edge definition)
+// Front light (directly from viewer side, illuminates electrode faces)
+const frontLight = new THREE.DirectionalLight(0xddeeff, 1);
+frontLight.position.set(0, 4, 12);
+scene.add(frontLight);
+
+// Rim light (behind)
 const rimLight = new THREE.DirectionalLight(0x5588cc, 0.8);
 rimLight.position.set(0, 3, -10);
 scene.add(rimLight);
 
+// Point lights near each electrode to brighten them
+const elecLightL = new THREE.PointLight(0xccddee, 2, 8);
+elecLightL.position.set(-2.2, 3, 3);
+scene.add(elecLightL);
+
+const elecLightR = new THREE.PointLight(0xccddee, 2, 8);
+elecLightR.position.set(2.2, 3, 3);
+scene.add(elecLightR);
+
 // Accent point lights
-const accentCyan = new THREE.PointLight(0x5cc4c4, 1.5, 25);
+const accentCyan = new THREE.PointLight(0x5cc4c4, 1, 20);
 accentCyan.position.set(-5, 4, 5);
 scene.add(accentCyan);
 
-const accentPurple = new THREE.PointLight(0x9b7ed8, 1, 20);
-accentPurple.position.set(5, 0, 5);
+const accentPurple = new THREE.PointLight(0x9b7ed8, 0.8, 18);
+accentPurple.position.set(5, 1, 5);
 scene.add(accentPurple);
-
-const accentGold = new THREE.PointLight(0xc9a84c, 0.6, 15);
-accentGold.position.set(0, 12, -5);
-scene.add(accentGold);
 
 // ═══════════════════════════════════════════════════
 //  PARTICLES — Electrons, Ions, Gas Bubbles
