@@ -1,9 +1,79 @@
 /**
- * 移动端横屏提示 + 基础适配
- * 所有页面在 </body> 前引入: <script src="mobile.js"></script>
+ * 移动端适配 + 横屏提示
  */
 (function() {
-  // Create overlay
+  // ── 1. 全局样式修复：防止内容溢出 ──
+  var fixStyle = document.createElement('style');
+  fixStyle.textContent = '' +
+    'html,body{max-width:100vw;overflow-x:hidden;}' +
+    '*{-webkit-box-sizing:border-box;box-sizing:border-box;}' +
+
+    // 横屏时的移动端适配
+    '@media screen and (max-height:500px) and (orientation:landscape){' +
+      // 首页卡片
+      '.cards-grid{grid-template-columns:repeat(3,1fr)!important;gap:0.8rem!important;max-width:100%!important;padding:0 1rem!important;}' +
+      '.card{padding:1.2rem 1rem 1rem!important;}' +
+      '.card-icon{width:40px!important;height:40px!important;margin-bottom:0.8rem!important;}' +
+      '.card-title{font-size:1rem!important;}' +
+      '.card-desc{font-size:0.7rem!important;}' +
+      '.header h1{font-size:1.6rem!important;}' +
+      '.header{margin-bottom:1.5rem!important;}' +
+      '.header-sub{font-size:0.75rem!important;}' +
+
+      // 虚拟实验室
+      '.lab-main{grid-template-columns:200px 1fr 220px!important;}' +
+      '.material-tray{padding:0.6rem!important;}' +
+      '.tray-label{font-size:0.6rem!important;}' +
+      '.material-item{padding:0.4rem 0.5rem!important;}' +
+      '.mat-icon{width:28px!important;height:28px!important;font-size:0.7rem!important;}' +
+      '.mat-name{font-size:0.72rem!important;}' +
+      '.task-card{padding:0.5rem 0.6rem!important;}' +
+      '.task-card p{font-size:0.7rem!important;}' +
+      '.circuit-diagram{width:340px!important;height:280px!important;}' +
+      '.drop-slot .slot-label{font-size:0.6rem!important;}' +
+      '.submit-btn{padding:0.5rem 1.5rem!important;font-size:0.78rem!important;}' +
+      '.history-panel{padding:0.6rem!important;}' +
+      '.history-title{font-size:0.65rem!important;}' +
+
+      // 教师面板
+      '.stats-bar{padding:0.5rem 1rem!important;gap:0.8rem!important;}' +
+      '.stat-card{padding:0.5rem 0.8rem!important;min-width:90px!important;}' +
+      '.stat-card-value{font-size:1.1rem!important;}' +
+      '.stat-card-label{font-size:0.55rem!important;}' +
+      '.groups-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))!important;gap:0.6rem!important;}' +
+      '.group-card{padding:0.6rem 0.8rem!important;}' +
+
+      // topbar
+      '.topbar,.lab-topbar{height:42px!important;padding:0 0.8rem!important;}' +
+      '.topbar-title,.lab-title{font-size:0.85rem!important;}' +
+      '.ctrl-btn,.action-btn{padding:0.3rem 0.6rem!important;font-size:0.68rem!important;}' +
+      '.back-btn{font-size:0.7rem!important;padding:0.3rem 0.5rem!important;}' +
+
+      // 选组页面
+      '.group-title{font-size:1.2rem!important;}' +
+      '.group-grid{grid-template-columns:repeat(5,1fr)!important;gap:0.5rem!important;}' +
+      '.group-btn{width:55px!important;height:55px!important;font-size:0.85rem!important;}' +
+
+      // 通用
+      '.footer{font-size:0.6rem!important;bottom:0.5rem!important;}' +
+    '}' +
+
+    // iPad 横屏适配（中等屏幕）
+    '@media screen and (min-height:501px) and (max-height:900px) and (orientation:landscape){' +
+      '.cards-grid{max-width:900px!important;}' +
+      '.header h1{font-size:2.2rem!important;}' +
+      '.lab-main{grid-template-columns:220px 1fr 260px!important;}' +
+    '}' +
+
+    // 竖屏手机（小屏）
+    '@media screen and (max-width:600px) and (orientation:portrait){' +
+      '.cards-grid{grid-template-columns:1fr!important;max-width:300px!important;}' +
+      '.header h1{font-size:1.5rem!important;}' +
+    '}';
+
+  document.head.appendChild(fixStyle);
+
+  // ── 2. 横屏提示遮罩（竖屏时显示） ──
   var overlay = document.createElement('div');
   overlay.id = 'landscapeOverlay';
   overlay.innerHTML = '<div class="lo-content">' +
@@ -12,9 +82,8 @@
     '<div class="lo-sub">本平台在横屏模式下体验更佳</div>' +
     '</div>';
 
-  // Styles
-  var style = document.createElement('style');
-  style.textContent = '' +
+  var olStyle = document.createElement('style');
+  olStyle.textContent = '' +
     '#landscapeOverlay{' +
       'display:none;position:fixed;inset:0;z-index:999999;' +
       'background:linear-gradient(135deg,#060a14,#0a1628);' +
@@ -35,6 +104,6 @@
       '#landscapeOverlay{display:none!important;}' +
     '}';
 
-  document.head.appendChild(style);
+  document.head.appendChild(olStyle);
   document.body.appendChild(overlay);
 })();
