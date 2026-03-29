@@ -658,8 +658,8 @@ for (let i = 0; i < 5; i++) {
   waterMolecules.push(w);
 }
 // H2O label
-const lblH2O = mkLabel('H₂O', new THREE.Vector3(2.8, 1.5, 1.5), '#66ccff');
-lblH2O.element.style.display = 'none';
+const lblH2O = mkLabel('H₂O', new THREE.Vector3(1.8, 2.5, 0), '#66ccff');
+lblH2O.visible = false;
 
 // ═══════════════════════════════════════════════════
 //  PARTICLE UPDATE
@@ -733,7 +733,7 @@ function updateParticles(time) {
     w.position.x = 2.2 + Math.sin(time * 0.5 + w.userData.phase) * 0.4;
     w.position.z += Math.sin(time + w.userData.phase) * 0.001;
   });
-  lblH2O.element.style.display = '';
+  lblH2O.visible = true;
 }
 
 // ═══════════════════════════════════════════════════
@@ -950,7 +950,7 @@ function toggleParticles() {
     eParticles.forEach(p => p.visible = false);
     iParticles.forEach(p => p.visible = false);
     waterMolecules.forEach(w => w.visible = false);
-    lblH2O.element.style.display = 'none';
+    lblH2O.visible = false;
     hIonLabel.visible = false;
     sIonLabel.visible = false;
     if (step !== 3) setBulbGlow(false);
