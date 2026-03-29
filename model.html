@@ -265,10 +265,11 @@ const matSolutionHi = new THREE.MeshPhysicalMaterial({
   roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
 });
 const matElectrode = new THREE.MeshStandardMaterial({
-  color: 0x667788, metalness: 0.85, roughness: 0.2
+  color: 0xc0c8d0, metalness: 0.95, roughness: 0.15,
+  emissive: 0x222830, emissiveIntensity: 0.3
 });
 const matElectrodeHi = new THREE.MeshStandardMaterial({
-  color: 0x5cc4c4, metalness: 0.9, roughness: 0.15,
+  color: 0x88dddd, metalness: 0.95, roughness: 0.1,
   emissive: 0x5cc4c4, emissiveIntensity: 0.5
 });
 const matWire = new THREE.MeshStandardMaterial({
