@@ -654,7 +654,7 @@
   <div class="group-subtitle">请在下方选择你所在的组号，进入虚拟实验室</div>
   <div class="group-grid" id="groupGrid"></div>
   <div style="color:var(--text-dim);font-size:0.72rem;margin-top:0.5rem;">
-    <a href="index.html" style="color:var(--text-dim);text-decoration:none;">← 返回主页</a>
+    <a href="/" style="color:var(--text-dim);text-decoration:none;">← 返回主页</a>
   </div>
 </div>
 
@@ -949,7 +949,7 @@ async function enterLab(groupId) {
   // Change "切换组" to "返回首页" after locking
   var backBtn = document.querySelector('.back-btn[onclick="backToGroup()"]');
   if (backBtn) {
-    backBtn.setAttribute('onclick', "location.href='index.html'");
+    backBtn.setAttribute('onclick', "location.href='/'");
     backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回';
   }
 
