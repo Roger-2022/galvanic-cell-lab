@@ -456,7 +456,7 @@ class BubbleParticle {
       this.size = (2 + Math.random() * 3) * sx;
       this.color = [100, 200, 120]; // green-tinted
       this.speed = (0.3 + Math.random() * 0.4) * sy;
-    } else {
+    } else if (this.type === 'o2') {
       // O2 particles move toward right electrode
       this.x = (495 + Math.random() * 40) * sx;
       this.startY = (180 + Math.random() * 60) * sy;
@@ -465,6 +465,14 @@ class BubbleParticle {
       this.size = (1.5 + Math.random() * 2.5) * sx;
       this.color = [100, 150, 230]; // blue-tinted
       this.speed = (0.15 + Math.random() * 0.25) * sx;
+    } else if (this.type === 'h2o') {
+      // H2O water molecules drift near positive electrode
+      this.x = (460 + Math.random() * 30) * sx;
+      this.y = (290 + Math.random() * 120) * sy;
+      this.size = (2.5 + Math.random() * 2) * sx;
+      this.color = [100, 200, 255]; // cyan
+      this.speed = 0;
+      this.label = true;
     }
     this.wobblePhase = Math.random() * Math.PI * 2;
     this.wobbleSpeed = 0.03 + Math.random() * 0.03;
@@ -479,11 +487,16 @@ class BubbleParticle {
         this.life -= 0.02;
         if (this.life <= 0) this.reset();
       }
-    } else {
+    } else if (this.type === 'o2') {
       this.x += (this.targetX - this.x) * 0.008;
       this.wobblePhase += this.wobbleSpeed;
       this.life -= 0.005;
       if (this.life <= 0) this.reset();
+    } else if (this.type === 'h2o') {
+      this.wobblePhase += this.wobbleSpeed * 0.5;
+      // Gentle drift
+      this.y += Math.sin(this.wobblePhase) * 0.15;
+      this.x += Math.cos(this.wobblePhase * 0.7) * 0.1;
     }
   }
   draw(ctx) {
@@ -510,6 +523,12 @@ class BubbleParticle {
     ctx.arc(px - this.size * 0.3, py - this.size * 0.3, this.size * 0.3, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(255,255,255,${a * 0.4})`;
     ctx.fill();
+    // H2O label
+    if (this.label) {
+      ctx.font = `${9 * sx}px 'Noto Sans SC', sans-serif`;
+      ctx.fillStyle = `rgba(100,200,255,${a * 0.8})`;
+      ctx.fillText('H₂O', px + this.size * 1.5, py + 3);
+    }
   }
 }
 
@@ -582,6 +601,10 @@ function createAllParticles() {
   // O2 particles toward right electrode
   for (let i = 0; i < 5; i++) {
     bubbles.push(new BubbleParticle('o2'));
+  }
+  // H2O water molecules near positive electrode
+  for (let i = 0; i < 4; i++) {
+    bubbles.push(new BubbleParticle('h2o'));
   }
   // Ambient bokeh
   for (let i = 0; i < 25; i++) {
