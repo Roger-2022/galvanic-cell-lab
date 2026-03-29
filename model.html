@@ -844,7 +844,6 @@ function showPanel(key) {
   document.querySelectorAll('.detail-content').forEach(el => el.classList.remove('visible'));
   const el = document.getElementById('detail-' + key);
   if (el) el.classList.add('visible');
-  openSidebar();
 }
 
 function zoomTo(key) {
