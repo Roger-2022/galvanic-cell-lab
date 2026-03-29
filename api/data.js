@@ -82,7 +82,7 @@ module.exports = async (req, res) => {
     }
     if (action === 'getAllGroups') {
       // Fetch all group_* keys
-      const r = await fetch(`${SUPABASE_URL}/rest/v1/lab_data?key=like.group_%&select=key,value`, {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/lab_data?key=like.group_%25&select=key,value`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
       });
       const rows = await r.json();
@@ -96,7 +96,7 @@ module.exports = async (req, res) => {
     if (action === 'resetGroup') {
       if (body.all) {
         // Delete all group_* keys
-        await fetch(`${SUPABASE_URL}/rest/v1/lab_data?key=like.group_%`, {
+        await fetch(`${SUPABASE_URL}/rest/v1/lab_data?key=like.group_%25`, {
           method: 'DELETE',
           headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
         });
