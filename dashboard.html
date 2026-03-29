@@ -462,13 +462,12 @@ async function detectServer() {
 }
 
 function getGroupData(id) {
-  // Prefer server data if available
-  if (useServer && serverGroups[id]) return serverGroups[id];
-  const d = localStorage.getItem(`galvanic_lab_group_${id}`);
-  return d ? JSON.parse(d) : { attempts: [], attemptsUsed: 0, success: false };
+  // Server data only (synced from Supabase)
+  if (serverGroups[id]) return serverGroups[id];
+  return { attempts: [], attemptsUsed: 0, success: false };
 }
 
-// Periodically fetch all groups from server
+// Fetch all data from server (Supabase via Vercel API)
 async function syncFromServer() {
   if (!useServer) return;
   try {
@@ -481,11 +480,13 @@ async function syncFromServer() {
   try {
     const res = await fetch(API_BASE + '/api/questions');
     if (res.ok) {
-      const qs = await res.json();
-      if (qs.length > 0) localStorage.setItem('galvanic_questions', JSON.stringify(qs));
+      serverQuestions = await res.json();
     }
   } catch {}
 }
+
+// Server-side questions storage
+let serverQuestions = [];
 
 // ═══════════ DASHBOARD ═══════════
 function refreshDashboard() {
@@ -708,7 +709,7 @@ function exportExcel() {
 
 // ═══════════ QUESTIONS ═══════════
 function refreshQuestions() {
-  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  const questions = useServer ? serverQuestions : JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
   document.getElementById('qBadge').textContent = questions.length + ' 条';
   const list = document.getElementById('questionsList');
   if (questions.length === 0) {
@@ -731,16 +732,18 @@ function refreshQuestions() {
   `).join('');
 }
 
-function clearQuestions() {
+async function clearQuestions() {
   if (!confirm('确认清除所有学生提问？')) return;
+  if (useServer) {
+    await fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
+    serverQuestions = [];
+  }
   localStorage.removeItem('galvanic_questions');
-  localStorage.setItem('galvanic_questions_update', Date.now().toString());
-  if (useServer) fetch(API_BASE+'/api/questions',{method:'DELETE'}).catch(()=>{});
   refreshQuestions();
 }
 
 function exportQuestions() {
-  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  const questions = useServer ? serverQuestions : JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
   if (questions.length === 0) { alert('暂无提问数据'); return; }
   const data = [['序号','姓名','学号','组别','问题内容','提问时间']];
   questions.forEach((q, i) => {
