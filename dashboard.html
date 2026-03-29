@@ -410,7 +410,10 @@ async function doLogin() {
     sessionStorage.setItem('_auth', '1');
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.add('visible');
+    await detectServer();
+    await syncFromServer();
     refreshDashboard();
+    refreshQuestions();
   } else {
     document.getElementById('loginError').textContent = '密码错误，请重试';
     document.getElementById('pwdInput').value = '';
@@ -450,7 +453,13 @@ function saveConfig() {
 const API_BASE = window.location.origin;
 let useServer = false;
 let serverGroups = {};
-fetch(API_BASE + '/api/config').then(r => { if (r.ok) useServer = true; }).catch(() => {});
+
+async function detectServer() {
+  try {
+    const r = await fetch(API_BASE + '/api/config');
+    if (r.ok) { useServer = true; console.log('[Dashboard] Server API detected'); }
+  } catch { console.log('[Dashboard] No server API, using localStorage'); }
+}
 
 function getGroupData(id) {
   // Prefer server data if available
@@ -747,7 +756,14 @@ function exportQuestions() {
 }
 
 // ═══════════ INIT ═══════════
-if (sessionStorage.getItem('_auth') === '1') { syncFromServer().then(() => { refreshDashboard(); refreshQuestions(); }); }
+(async function() {
+  await detectServer();
+  if (sessionStorage.getItem('_auth') === '1') {
+    await syncFromServer();
+    refreshDashboard();
+    refreshQuestions();
+  }
+})();
 setInterval(async () => {
   if (sessionStorage.getItem('_auth') === '1') {
     await syncFromServer();

@@ -845,8 +845,13 @@ let activeSlot = null; // which slot is being selected for
 const API_BASE = window.location.origin;
 let useServer = false;
 
-// Test server availability on load
-fetch(API_BASE + '/api/config').then(r => { if (r.ok) useServer = true; }).catch(() => {});
+// Test server availability on load (result used before any data operations)
+async function detectServer() {
+  try {
+    const r = await fetch(API_BASE + '/api/config', { method: 'GET' });
+    if (r.ok) { useServer = true; console.log('[Sync] Server detected, using API for data sync'); }
+  } catch { console.log('[Sync] No server, using localStorage only'); }
+}
 
 function getGroupData(groupId) {
   // Synchronous read from localStorage (server sync is async overlay)
@@ -907,8 +912,17 @@ async function enterLab(groupId) {
   document.getElementById('labScreen').classList.add('active');
   document.getElementById('groupBadge').textContent = `第 ${groupId} 组`;
 
-  // Sync from server if available
-  await syncGroupFromServer(groupId);
+  // Always try to fetch from server (server is authoritative)
+  if (useServer) {
+    try {
+      const res = await fetch(API_BASE + '/api/group?id=' + groupId);
+      if (res.ok) {
+        const serverData = await res.json();
+        // Always use server data (even if empty - server is truth)
+        localStorage.setItem(`galvanic_lab_group_${groupId}`, JSON.stringify(serverData));
+      }
+    } catch {}
+  }
 
   const data = getGroupData(groupId);
   updateLabUI(data);
@@ -1233,17 +1247,34 @@ function renderHistory(data) {
 }
 
 // ══════════ Init ══════════
-// Load config from localStorage if teacher has set it
-const savedConfig = localStorage.getItem('galvanic_lab_config');
-if (savedConfig) {
-  const cfg = JSON.parse(savedConfig);
-  if (cfg.maxAttempts) CONFIG.maxAttempts = cfg.maxAttempts;
-  if (cfg.cooldownSeconds) CONFIG.cooldownSeconds = cfg.cooldownSeconds;
-  if (cfg.totalGroups) CONFIG.totalGroups = cfg.totalGroups;
-}
-document.getElementById('cooldownDisplay').textContent = CONFIG.cooldownSeconds + 's';
+// Detect server FIRST, then load config, then init UI
+(async function init() {
+  await detectServer();
 
-initGroupScreen();
+  // Load config from server or localStorage
+  if (useServer) {
+    try {
+      const r = await fetch(API_BASE + '/api/config');
+      if (r.ok) {
+        const cfg = await r.json();
+        if (cfg.maxAttempts) CONFIG.maxAttempts = cfg.maxAttempts;
+        if (cfg.cooldownSeconds) CONFIG.cooldownSeconds = cfg.cooldownSeconds;
+        if (cfg.totalGroups) CONFIG.totalGroups = cfg.totalGroups;
+      }
+    } catch {}
+  } else {
+    const savedConfig = localStorage.getItem('galvanic_lab_config');
+    if (savedConfig) {
+      const cfg = JSON.parse(savedConfig);
+      if (cfg.maxAttempts) CONFIG.maxAttempts = cfg.maxAttempts;
+      if (cfg.cooldownSeconds) CONFIG.cooldownSeconds = cfg.cooldownSeconds;
+      if (cfg.totalGroups) CONFIG.totalGroups = cfg.totalGroups;
+    }
+  }
+
+  document.getElementById('cooldownDisplay').textContent = CONFIG.cooldownSeconds + 's';
+  initGroupScreen();
+})();
 
 // Question functions removed — handled in second script block after DOM
 </script>
