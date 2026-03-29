@@ -259,6 +259,12 @@
     position: relative;
     width: 460px;
     height: 380px;
+    max-width: 100%;
+    max-height: calc(100dvh - 120px);
+    aspect-ratio: 460 / 380;
+  }
+  @media (max-height: 500px) {
+    .circuit-diagram { width: auto; height: calc(100dvh - 100px); }
   }
 
   .circuit-svg {

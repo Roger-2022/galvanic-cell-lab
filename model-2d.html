@@ -21,7 +21,8 @@
   .ctrl-btn:hover{border-color:var(--cyan);background:rgba(92,196,196,0.06)}
   .ctrl-btn.active{border-color:var(--cyan);background:rgba(92,196,196,0.12);color:var(--cyan)}
   .canvas-area{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,rgba(92,196,196,0.03) 0%,transparent 70%)}
-  .diagram-container{position:relative;width:720px;height:540px}
+  .diagram-container{position:relative;width:720px;height:540px;max-width:95vw;max-height:calc(100dvh - 80px);aspect-ratio:720/540}
+  @media(max-height:500px){.diagram-container{width:auto;height:calc(100dvh - 70px)}}
   .hotspot{position:absolute;cursor:pointer;border-radius:12px;border:2px solid transparent;transition:all .35s cubic-bezier(.4,0,.2,1)}
   .hotspot::after{content:attr(data-label);position:absolute;font-size:.72rem;white-space:nowrap;color:var(--text-dim);transition:color .3s;letter-spacing:.05em;pointer-events:none}
   .hotspot:hover,.hotspot.active{border-color:var(--hc);background:var(--hb);box-shadow:0 0 30px var(--hg)}
