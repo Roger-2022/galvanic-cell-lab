@@ -411,6 +411,19 @@ async function doLogin() {
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('mainApp').classList.add('visible');
     await detectServer();
+    // Load config from server
+    if (useServer) {
+      try {
+        const cr = await fetch(API_BASE + '/api/config');
+        if (cr.ok) {
+          const serverCfg = await cr.json();
+          Object.assign(config, serverCfg);
+          document.getElementById('cfgMaxAttempts').value = config.maxAttempts;
+          document.getElementById('cfgCooldown').value = config.cooldownSeconds;
+          document.getElementById('cfgGroups').value = config.totalGroups;
+        }
+      } catch {}
+    }
     await syncFromServer();
     refreshDashboard();
     refreshQuestions();
@@ -440,11 +453,17 @@ document.getElementById('cfgGroups').value = config.totalGroups;
 
 function toggleConfig() { document.getElementById('configPanel').classList.toggle('visible'); }
 
-function saveConfig() {
+async function saveConfig() {
   config.maxAttempts = parseInt(document.getElementById('cfgMaxAttempts').value) || 5;
   config.cooldownSeconds = parseInt(document.getElementById('cfgCooldown').value) || 30;
   config.totalGroups = parseInt(document.getElementById('cfgGroups').value) || 15;
   localStorage.setItem('galvanic_lab_config', JSON.stringify(config));
+  if (useServer) {
+    await fetch(API_BASE + '/api/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    }).catch(() => {});
+  }
   document.getElementById('configPanel').classList.remove('visible');
   refreshDashboard();
 }
@@ -554,10 +573,10 @@ function refreshDashboard() {
 }
 
 // ═══════════ ACTIONS ═══════════
-function resetGroup(id) {
+async function resetGroup(id) {
   if (!confirm(`确认重置第 ${id} 组？`)) return;
-  localStorage.removeItem(`galvanic_lab_group_${id}`);
-  if (useServer) fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}).catch(()=>{});
+  delete serverGroups[id];
+  if (useServer) await fetch(API_BASE+'/api/group/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}).catch(()=>{});
   refreshDashboard();
 }
 

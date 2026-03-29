@@ -596,20 +596,32 @@ function showQuestionBubble(q) {
   }
 }
 
-// Poll for new questions
-setInterval(() => {
-  const questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+// Poll for new questions — try server API first, fallback to localStorage
+setInterval(async () => {
+  let questions = [];
+  try {
+    const r = await fetch(window.location.origin + '/api/questions');
+    if (r.ok) questions = await r.json();
+  } catch {
+    questions = JSON.parse(localStorage.getItem('galvanic_questions') || '[]');
+  }
   if (questions.length > lastQCount) {
-    // Show new questions
     for (let i = lastQCount; i < questions.length; i++) {
       setTimeout(() => showQuestionBubble(questions[i]), (i - lastQCount) * 300);
     }
     lastQCount = questions.length;
   }
-}, 1500);
+}, 2000);
 
-// Init with existing count
-lastQCount = JSON.parse(localStorage.getItem('galvanic_questions') || '[]').length;
+// Init count
+(async () => {
+  try {
+    const r = await fetch(window.location.origin + '/api/questions');
+    if (r.ok) { const qs = await r.json(); lastQCount = qs.length; }
+  } catch {
+    lastQCount = JSON.parse(localStorage.getItem('galvanic_questions') || '[]').length;
+  }
+})();
 </script>
 
 <style>

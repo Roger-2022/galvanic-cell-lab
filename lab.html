@@ -925,11 +925,22 @@ async function syncGroupFromServer(groupId) {
 }
 
 // ══════════ Group Selection ══════════
-function initGroupScreen() {
+let allGroupsCache = {};
+
+async function initGroupScreen() {
   const grid = document.getElementById('groupGrid');
   grid.innerHTML = '';
+
+  // Fetch all group states from server for accurate display
+  if (useServer) {
+    try {
+      const r = await fetch(API_BASE + '/api/groups');
+      if (r.ok) { const d = await r.json(); allGroupsCache = d.groups || {}; }
+    } catch {}
+  }
+
   for (let i = 1; i <= CONFIG.totalGroups; i++) {
-    const data = getGroupData(i);
+    const data = allGroupsCache[i] || getGroupData(i);
     const btn = document.createElement('button');
     btn.className = 'group-btn';
     btn.innerHTML = `${i}<span>第${i}组</span>`;
