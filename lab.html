@@ -1395,10 +1395,7 @@ window.tryAdminLogin = async function() {
     sessionStorage.setItem('isAdmin', '1');
     sessionStorage.removeItem('lockedGroup');
     document.getElementById('adminLogin').style.display = 'none';
-    document.getElementById('adminToggle').textContent = '管理员模式';
-    document.getElementById('adminToggle').style.opacity = '1';
-    document.getElementById('adminToggle').style.color = '#c9a84c';
-    document.getElementById('adminToggle').style.borderColor = '#c9a84c';
+    setAdminUI(true);
     alert('管理员模式已启用。你可以自由切换各组查看和测试。');
   } else {
     document.getElementById('adminError').textContent = '密码错误';
@@ -1406,12 +1403,36 @@ window.tryAdminLogin = async function() {
   }
 };
 
+function setAdminUI(on) {
+  var at = document.getElementById('adminToggle');
+  if (!at) return;
+  if (on) {
+    at.textContent = '退出管理员';
+    at.style.opacity = '1';
+    at.style.color = '#c9a84c';
+    at.style.borderColor = '#c9a84c';
+    at.onclick = function() { exitAdmin(); };
+  } else {
+    at.textContent = '管理员';
+    at.style.opacity = '0.4';
+    at.style.color = '';
+    at.style.borderColor = '';
+    at.onclick = function() { document.getElementById('adminLogin').style.display = 'flex'; };
+  }
+}
+
+window.exitAdmin = function() {
+  isAdmin = false;
+  sessionStorage.removeItem('isAdmin');
+  setAdminUI(false);
+  alert('已退出管理员模式。');
+};
+
 // Restore admin mode from session
 if (sessionStorage.getItem('isAdmin') === '1') {
   isAdmin = true;
-  sessionStorage.removeItem('lockedGroup'); // Admin is never locked
-  var at = document.getElementById('adminToggle');
-  if (at) { at.textContent = '管理员模式'; at.style.opacity = '1'; at.style.color = '#c9a84c'; at.style.borderColor = '#c9a84c'; }
+  sessionStorage.removeItem('lockedGroup');
+  setAdminUI(true);
 }
 
 // Question functions removed — handled in second script block after DOM
