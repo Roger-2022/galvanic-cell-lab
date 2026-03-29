@@ -946,8 +946,12 @@ async function enterLab(groupId) {
   renderHistory(data);
   resetChoices();
 
-  // Hide "切换组" button after locking
-  document.querySelector('.back-btn[onclick="backToGroup()"]')?.remove();
+  // Change "切换组" to "返回首页" after locking
+  var backBtn = document.querySelector('.back-btn[onclick="backToGroup()"]');
+  if (backBtn) {
+    backBtn.setAttribute('onclick', "location.href='index.html'");
+    backBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回';
+  }
 
   if (data.success) {
     showSuccessOverlay(data);
