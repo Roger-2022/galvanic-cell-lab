@@ -266,13 +266,13 @@ const matSolutionHi = new THREE.MeshPhysicalMaterial({
   roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
 });
 
-// Fe electrode (left, negative) — iron brown
+// Fe electrode (left, negative) — silvery-white iron
 const matElectrodeFe = new THREE.MeshStandardMaterial({
-  color: 0x8B4513, metalness: 0.7, roughness: 0.4,
-  emissive: 0x5a2d0a, emissiveIntensity: 0.3
+  color: 0xc0c0c8, metalness: 0.85, roughness: 0.3,
+  emissive: 0x404048, emissiveIntensity: 0.15
 });
 const matElectrodeFeHi = new THREE.MeshStandardMaterial({
-  color: 0xaa6633, metalness: 0.7, roughness: 0.3,
+  color: 0xd0d0d8, metalness: 0.85, roughness: 0.25,
   emissive: 0x5cc4c4, emissiveIntensity: 0.6
 });
 
@@ -679,6 +679,7 @@ function updateParticles(time) {
     needle.rotation.z = -0.7;
     needleMat.emissiveIntensity = 0.3;
     elecL.scale.y = 1.0;
+    elecL.position.y = 1 + elecH_total / 2; // reset to original center y=4
     return;
   }
 
@@ -686,9 +687,12 @@ function updateParticles(time) {
   needle.rotation.z = -0.7 + Math.sin(time * 1.5) * 0.05;
   needleMat.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2;
 
-  // Fe electrode dissolution animation — oscillates scale to simulate dissolving
+  // Fe electrode erosion animation — bottom erodes upward (top stays at y=7)
   const pingpong = (Math.sin(time * 0.628) + 1) / 2; // period ~10 sec, range 0..1
-  elecL.scale.y = 0.6 + 0.4 * pingpong;
+  const s = 0.65 + 0.35 * pingpong; // scale 0.65..1.0
+  elecL.scale.y = s;
+  // Keep top fixed at y=7: center = 7 - (elecH_total * s) / 2
+  elecL.position.y = 7 - (elecH_total * s) / 2;
 
   // Electron particles along wire curve (LEFT to RIGHT)
   eParticles.forEach(p => {

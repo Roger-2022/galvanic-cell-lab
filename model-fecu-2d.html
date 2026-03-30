@@ -109,7 +109,7 @@
         <!-- Liquid surface line -->
         <line x1="153" y1="255" x2="567" y2="255" stroke="#9b7ed8" stroke-width="1" opacity="0.4" stroke-dasharray="4,4"/>
         <!-- Left electrode (负极 Fe) — brown color -->
-        <rect id="feElectrode" x="230" y="110" width="18" height="320" rx="3" fill="rgba(139,69,19,0.35)" stroke="#8B4513" stroke-width="1.5"/>
+        <rect id="feElectrode" x="230" y="110" width="18" height="320" rx="3" fill="rgba(192,192,200,0.35)" stroke="#C0C0C8" stroke-width="1.5"/>
         <text x="239" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Fe电极</text>
         <text x="239" y="86" text-anchor="middle" fill="#5cc4c4" font-size="11">负极</text>
         <!-- Right electrode (正极 Cu) — copper-orange color -->
@@ -198,7 +198,7 @@
       </div>
       <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:.6rem">
         <div style="font-size:.65rem;color:rgba(255,255,255,0.25);margin-bottom:.3rem">铁-铜原电池原理</div>
-        <p style="font-size:.7rem;color:rgba(255,255,255,0.45);line-height:1.5"><span style="color:#8B4513">Fe</span>（活泼）做负极失电子 &nbsp; <span style="color:#B87333">Cu</span>（不活泼）做正极得电子</p>
+        <p style="font-size:.7rem;color:rgba(255,255,255,0.45);line-height:1.5"><span style="color:#C0C0C8">Fe</span>（活泼）做负极失电子 &nbsp; <span style="color:#B87333">Cu</span>（不活泼）做正极得电子</p>
       </div>
     </div>
     <div class="detail-content" id="detail-electrode">
@@ -661,9 +661,8 @@ function animate() {
     const shrinkFrac = tri * 0.3; // max 30% shrink
     const origH = 320, origY = 110;
     const newH = origH * (1 - shrinkFrac);
-    const newY = origY + (origH - newH); // shrink from top, anchor at bottom
+    // Top stays fixed at y=110 (connected to wire), bottom erodes upward
     feEl.setAttribute('height', newH.toFixed(1));
-    feEl.setAttribute('y', newY.toFixed(1));
   }
 
   // Vignette overlay
