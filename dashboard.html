@@ -184,6 +184,7 @@
     border-radius: 12px; padding: 1rem 1.2rem; transition: all 0.3s;
   }
   .group-card.success { border-color: rgba(92,184,92,0.3); background: rgba(92,184,92,0.03); }
+  .group-card.partial { border-color: rgba(201,168,76,0.25); background: rgba(201,168,76,0.02); }
   .group-card.failed { border-color: rgba(217,83,79,0.2); background: rgba(217,83,79,0.02); }
   .group-card.inactive { opacity: 0.4; }
 
@@ -195,12 +196,14 @@
   }
   .status-success { background: rgba(92,184,92,0.15); color: var(--green); }
   .status-active { background: rgba(74,144,217,0.15); color: var(--blue); }
+  .status-partial { background: rgba(201,168,76,0.15); color: var(--gold); }
   .status-failed { background: rgba(217,83,79,0.15); color: var(--red); }
   .status-idle { background: rgba(255,255,255,0.05); color: var(--text-dim); }
 
   .group-card-progress { display: flex; gap: 0.3rem; margin-bottom: 0.6rem; }
   .progress-dot { width: 28px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.06); }
   .progress-dot.used { background: rgba(217,83,79,0.4); }
+  .progress-dot.partial { background: rgba(201,168,76,0.5); }
   .progress-dot.success { background: rgba(92,184,92,0.5); }
 
   .group-card-attempts { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 0.4rem; }
@@ -255,6 +258,7 @@
     font-size: 0.8rem; line-height: 1.6;
   }
   .modal-attempt.success { border-color: rgba(92,184,92,0.2); }
+  .modal-attempt.partial { border-color: rgba(201,168,76,0.2); }
   .modal-attempt .attempt-header {
     display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-weight: 600;
   }
@@ -521,10 +525,16 @@ function refreshDashboard() {
 
     if (data.attemptsUsed > 0) {
       started++; attemptedGroups++; totalAttempts += data.attemptsUsed;
+      // Check for partial success (task1 passed but not task2)
+      const hasPartial = data.attempts && data.attempts.some(a => a.task1 && !a.task2);
       if (data.success) {
         success++; statusText = '已成功'; statusClass = 'status-success'; cardClass = 'success';
       } else if (data.attemptsUsed >= config.maxAttempts) {
-        failed++; statusText = '已失败'; statusClass = 'status-failed'; cardClass = 'failed';
+        if (hasPartial) {
+          failed++; statusText = '部分完成'; statusClass = 'status-partial'; cardClass = 'partial';
+        } else {
+          failed++; statusText = '已失败'; statusClass = 'status-failed'; cardClass = 'failed';
+        }
       } else {
         active++; statusText = `进行中 (${data.attemptsUsed}/${config.maxAttempts})`; statusClass = 'status-active'; cardClass = '';
       }
@@ -532,8 +542,12 @@ function refreshDashboard() {
 
     let progressDots = '';
     for (let j = 0; j < config.maxAttempts; j++) {
-      if (j < data.attemptsUsed) {
-        progressDots += `<div class="progress-dot ${data.success && j === data.attemptsUsed - 1 ? 'success' : 'used'}"></div>`;
+      if (j < data.attemptsUsed && data.attempts && data.attempts[j]) {
+        const a = data.attempts[j];
+        const dotClass = (a.task1 && a.task2) ? 'success' : (a.task1 ? 'partial' : 'used');
+        progressDots += `<div class="progress-dot ${dotClass}"></div>`;
+      } else if (j < data.attemptsUsed) {
+        progressDots += `<div class="progress-dot used"></div>`;
       } else {
         progressDots += '<div class="progress-dot"></div>';
       }
@@ -613,16 +627,28 @@ function showDetail(id) {
   if (data.attempts.length === 0) {
     body.innerHTML = '<div style="text-align:center;color:var(--text-dim);padding:2rem;">尚未开始实验</div>';
   } else {
-    body.innerHTML = data.attempts.map((a, idx) => `
-      <div class="modal-attempt ${a.success ? 'success' : ''}">
+    body.innerHTML = data.attempts.map((a, idx) => {
+      const bothPass = a.task1 && a.task2;
+      const partial = a.task1 && !a.task2;
+      const statusText = bothPass ? '成功' : partial ? '部分完成' : '失败';
+      const statusColor = bothPass ? 'var(--green)' : partial ? 'var(--gold)' : 'var(--red)';
+      const cssClass = bothPass ? 'success' : partial ? 'partial' : '';
+      const deflText = a.deflection === 'right' ? 'G表右偏' : a.deflection === 'left' ? 'G表左偏' : 'G表不偏转';
+      return `
+      <div class="modal-attempt ${cssClass}">
         <div class="attempt-header">
           <span>第 ${idx + 1} 次尝试</span>
-          <span style="color:${a.success ? 'var(--green)' : 'var(--red)'}">${a.success ? '成功' : '失败'}</span>
+          <span style="color:${statusColor}">${statusText}</span>
         </div>
         <div style="color:var(--text-dim);margin-bottom:0.3rem;">负极：${a.negName} | 正极：${a.posName} | 溶液：${a.solName}</div>
-        <div style="color:var(--gold);font-size:0.78rem;">${a.feedback}</div>
-      </div>
-    `).join('');
+        <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.3rem;">
+          任务一${a.task1 ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}
+          任务二${a.task2 ? '<span style="color:var(--green)">✓</span>' : '<span style="color:var(--red)">✗</span>'}
+          &nbsp;(${deflText})
+        </div>
+        ${a.feedback ? `<div style="color:var(--gold);font-size:0.78rem;">${a.feedback}</div>` : ''}
+      </div>`;
+    }).join('');
   }
   document.getElementById('modalOverlay').classList.add('visible');
 }
@@ -635,7 +661,7 @@ function closeModal(e) {
 // ═══════════ EXPORT EXCEL ═══════════
 function exportExcel() {
   // Sheet 1: Summary per group — includes ALL attempts (success + failures)
-  const summaryData = [['组号', '最终状态', '总尝试次数', '尝试序号', '结果', '负极材料', '正极材料', '电解质溶液', '失败原因', '时间']];
+  const summaryData = [['组号', '最终状态', '总尝试次数', '尝试序号', '结果', '任务一', '任务二', 'G表偏转', '负极材料', '正极材料', '电解质溶液', '提示', '时间']];
 
   for (let i = 1; i <= config.totalGroups; i++) {
     const data = getGroupData(i);
@@ -645,19 +671,26 @@ function exportExcel() {
     else if (data.attemptsUsed > 0) status = '进行中';
 
     if (data.attempts.length === 0) {
-      summaryData.push([`第${i}组`, status, 0, '—', '—', '—', '—', '—', '—', '—']);
+      summaryData.push([`第${i}组`, status, 0, '—', '—', '—', '—', '—', '—', '—', '—', '—', '—']);
     } else {
       data.attempts.forEach((a, idx) => {
+        const bothPass = a.task1 && a.task2;
+        const partial = a.task1 && !a.task2;
+        const resultText = bothPass ? '成功' : partial ? '部分完成' : '失败';
+        const deflText = a.deflection === 'right' ? '右偏' : a.deflection === 'left' ? '左偏' : '不偏转';
         summaryData.push([
           `第${i}组`,
-          idx === 0 ? status : '', // only show status on first row
+          idx === 0 ? status : '',
           idx === 0 ? data.attemptsUsed : '',
           `第${idx+1}次`,
-          a.success ? '成功' : '失败',
+          resultText,
+          a.task1 ? '✓' : '✗',
+          a.task2 ? '✓' : '✗',
+          deflText,
           a.negName,
           a.posName,
           a.solName,
-          a.success ? '' : a.feedback,
+          a.feedback || '',
           a.timestamp ? new Date(a.timestamp).toLocaleString('zh-CN') : '—'
         ]);
       });

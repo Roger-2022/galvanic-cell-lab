@@ -1311,7 +1311,6 @@ function evaluateDesignV2(neg, pos, sol) {
 // ══════════ Submit ══════════
 async function submitDesign() {
   const data = await fetchGroupData(currentGroup);
-  if (data.attemptsUsed >= CONFIG.maxAttempts || data.success) return;
 
   const neg = choices.neg_electrode?.value;
   const pos = choices.pos_electrode?.value;
@@ -1319,33 +1318,42 @@ async function submitDesign() {
 
   const result = evaluateDesignV2(neg, pos, sol);
 
-  data.attemptsUsed++;
-  data.attempts.push({
-    neg, pos, sol,
-    negName: choices.neg_electrode?.name,
-    posName: choices.pos_electrode?.name,
-    solName: choices.solution?.name,
-    task1: result.task1,
-    task2: result.task2,
-    deflection: result.deflection,
-    feedback: result.hint,
-    timestamp: Date.now()
-  });
+  // If already succeeded, allow exploration but don't count as attempt
+  const isExploring = data.success === true;
 
-  if (result.task1 && result.task2) {
-    data.success = true;
+  if (!isExploring) {
+    // Normal attempt: check limits
+    if (data.attemptsUsed >= CONFIG.maxAttempts) return;
+
+    data.attemptsUsed++;
+    data.attempts.push({
+      neg, pos, sol,
+      negName: choices.neg_electrode?.name,
+      posName: choices.pos_electrode?.name,
+      solName: choices.solution?.name,
+      success: result.task1 && result.task2,
+      task1: result.task1,
+      task2: result.task2,
+      deflection: result.deflection,
+      feedback: result.hint,
+      timestamp: Date.now()
+    });
+
+    if (result.task1 && result.task2) {
+      data.success = true;
+    }
+
+    saveGroupData(currentGroup, data);
+    updateLabUI(data);
+    renderHistory(data);
   }
-
-  saveGroupData(currentGroup, data);
-  updateLabUI(data);
-  renderHistory(data);
 
   // Disable submit during animation
   document.getElementById('submitBtn').disabled = true;
 
   // Animate G-meter, then show result popup
   animateGmeter(result.deflection, () => {
-    showResultPopup(result, data);
+    showResultPopup(result, data, isExploring);
   });
 }
 
@@ -1380,7 +1388,7 @@ function resetGmeter() {
 }
 
 // ══════════ Result Popup ══════════
-function showResultPopup(result, data) {
+function showResultPopup(result, data, isExploring) {
   const overlay = document.getElementById('resultOverlay');
   const t1Icon = document.getElementById('task1Icon');
   const t2Icon = document.getElementById('task2Icon');
@@ -1404,8 +1412,18 @@ function showResultPopup(result, data) {
     hintEl.style.display = 'none';
   }
 
-  if (result.task1 && result.task2) {
-    closeBtn.textContent = '实验完成！';
+  if (isExploring) {
+    // Exploration mode after success — just show results, no cooldown
+    closeBtn.textContent = '继续探索';
+    closeBtn.className = 'result-btn';
+    // Add exploration badge
+    hintEl.textContent = '你已完成全部任务！现在是自由探索模式，可以尝试不同组合观察G表反应，不计入实验次数。';
+    hintEl.style.display = 'block';
+    hintEl.style.borderColor = 'rgba(92,196,196,0.2)';
+    hintEl.style.background = 'rgba(92,196,196,0.06)';
+    hintEl.style.color = 'var(--cyan)';
+  } else if (result.task1 && result.task2) {
+    closeBtn.textContent = '实验完成！继续探索';
     closeBtn.className = 'result-btn success-btn';
     document.querySelectorAll('.drop-slot').forEach(s => {
       s.classList.remove('error');
@@ -1420,8 +1438,13 @@ function showResultPopup(result, data) {
 
   closeBtn.onclick = () => {
     overlay.classList.remove('active');
-    if (result.task1 && result.task2) {
-      // Full success — no cooldown
+    // Reset hint style for next time
+    hintEl.style.borderColor = '';
+    hintEl.style.background = '';
+    hintEl.style.color = '';
+    resetChoices();
+    if (isExploring || (result.task1 && result.task2)) {
+      // Success or exploring — no cooldown, can continue
     } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
       document.getElementById('failedOverlay').classList.add('active');
     } else {
