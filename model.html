@@ -279,16 +279,11 @@ const matWireHi = new THREE.MeshStandardMaterial({
   color: 0xc9a84c, metalness: 0.9, roughness: 0.15,
   emissive: 0xc9a84c, emissiveIntensity: 0.5
 });
-const matBulbGlass = new THREE.MeshPhysicalMaterial({
-  color: 0xffffff, transparent: true, opacity: 0.08,
-  roughness: 0.05, transmission: 0.9,
-  side: THREE.DoubleSide, depthWrite: false
+const matMotorBody = new THREE.MeshStandardMaterial({
+  color: 0x555555, metalness: 0.6, roughness: 0.4
 });
-const matFilament = new THREE.MeshStandardMaterial({
-  color: 0x886633, emissive: 0x443311, emissiveIntensity: 0.3
-});
-const matBulbBase = new THREE.MeshStandardMaterial({
-  color: 0x888888, metalness: 0.7, roughness: 0.4
+const matMotorShaft = new THREE.MeshStandardMaterial({
+  color: 0x999999, metalness: 0.7, roughness: 0.3
 });
 
 const model = new THREE.Group();
@@ -387,61 +382,49 @@ wire.name = 'wire';
 model.add(wire);
 
 // ═══════════════════════════════════════════════════
-//  LIGHT BULB at top center of wire arc
+//  MOTOR at top center of wire arc
 // ═══════════════════════════════════════════════════
-const bulbGroup = new THREE.Group();
-bulbGroup.position.set(0, 10.5, 0);
+const motorGroup = new THREE.Group();
+motorGroup.position.set(0, 10.5, 0);
 
-// Glass bulb
-const bulbGlassGeo = new THREE.SphereGeometry(0.55, 32, 32);
-const bulbGlass = new THREE.Mesh(bulbGlassGeo, matBulbGlass);
-bulbGlass.name = 'wire';
-bulbGroup.add(bulbGlass);
+// Motor body — horizontal cylinder (rotated 90° on Z axis)
+const motorBodyGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.7, 24);
+const motorBody = new THREE.Mesh(motorBodyGeo, matMotorBody);
+motorBody.rotation.z = Math.PI / 2; // horizontal
+motorBody.name = 'wire';
+motorGroup.add(motorBody);
 
-// Base
-const bulbBaseGeo = new THREE.CylinderGeometry(0.25, 0.3, 0.4, 16);
-const bulbBase = new THREE.Mesh(bulbBaseGeo, matBulbBase);
-bulbBase.position.y = -0.6;
-bulbBase.name = 'wire';
-bulbGroup.add(bulbBase);
+// Motor end caps (small discs on each end)
+const capGeo = new THREE.CylinderGeometry(0.4, 0.4, 0.04, 24);
+const capMatDark = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.7, roughness: 0.3 });
+const capLeft = new THREE.Mesh(capGeo, capMatDark);
+capLeft.rotation.z = Math.PI / 2;
+capLeft.position.x = -0.37;
+capLeft.name = 'wire';
+motorGroup.add(capLeft);
+const capRight = new THREE.Mesh(capGeo.clone(), capMatDark);
+capRight.rotation.z = Math.PI / 2;
+capRight.position.x = 0.37;
+capRight.name = 'wire';
+motorGroup.add(capRight);
 
-// Filament
-const filCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(-0.12, -0.3, 0),
-  new THREE.Vector3(-0.08, 0.05, 0.05),
-  new THREE.Vector3(0, 0.2, -0.03),
-  new THREE.Vector3(0.08, 0.05, 0.05),
-  new THREE.Vector3(0.12, -0.3, 0),
-]);
-const filGeo = new THREE.TubeGeometry(filCurve, 20, 0.02, 6, false);
-const filament = new THREE.Mesh(filGeo, matFilament);
-filament.name = 'wire';
-bulbGroup.add(filament);
+// Motor shaft — sticks out from the right end
+const motorShaftGeo = new THREE.CylinderGeometry(0.05, 0.05, 0.3, 12);
+const motorShaft = new THREE.Mesh(motorShaftGeo, matMotorShaft);
+motorShaft.rotation.z = Math.PI / 2; // horizontal, aligned with body
+motorShaft.position.x = 0.5 + 0.15; // sticking out right side
+motorShaft.name = 'wire';
+motorGroup.add(motorShaft);
 
-// Bulb glow light (off by default)
-const bulbLight = new THREE.PointLight(0xffdd66, 0, 12);
-bulbLight.position.set(0, 0, 0);
-bulbGroup.add(bulbLight);
+// Small indicator blade on the shaft (so rotation is visible)
+const bladeGeo = new THREE.BoxGeometry(0.02, 0.22, 0.06);
+const bladeMat = new THREE.MeshStandardMaterial({ color: 0xcc4444, metalness: 0.3, roughness: 0.5 });
+const motorBlade = new THREE.Mesh(bladeGeo, bladeMat);
+motorBlade.position.x = 0.65;
+motorBlade.name = 'wire';
+motorGroup.add(motorBlade);
 
-// Bloom-like glow sphere (outer aura)
-const bloomGlowMat = new THREE.MeshBasicMaterial({
-  color: 0xffdd66, transparent: true, opacity: 0,
-  side: THREE.DoubleSide, depthWrite: false
-});
-const bloomGlow = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), bloomGlowMat);
-bloomGlow.name = '_glow';
-bulbGroup.add(bloomGlow);
-
-// Secondary larger glow
-const bloomGlow2Mat = new THREE.MeshBasicMaterial({
-  color: 0xffeeaa, transparent: true, opacity: 0,
-  side: THREE.DoubleSide, depthWrite: false
-});
-const bloomGlow2 = new THREE.Mesh(new THREE.SphereGeometry(2.0, 12, 12), bloomGlow2Mat);
-bloomGlow2.name = '_glow';
-bulbGroup.add(bloomGlow2);
-
-model.add(bulbGroup);
+model.add(motorGroup);
 
 // ═══════════════════════════════════════════════════
 //  GAS INLETS (adsorbed on Pt electrode surfaces, inside solution)
@@ -747,28 +730,16 @@ function updateParticles(time) {
 }
 
 // ═══════════════════════════════════════════════════
-//  BULB GLOW CONTROL
+//  MOTOR ACTIVE CONTROL
 // ═══════════════════════════════════════════════════
-let bulbGlowing = false;
+let motorActive = false;
 
-function setBulbGlow(on) {
-  bulbGlowing = on;
-  // Point light
-  bulbLight.intensity = on ? 5 : 0;
-  bulbLight.color.set(on ? 0xffdd66 : 0xffdd66);
-
-  // Filament
-  matFilament.emissive.set(on ? 0xffcc44 : 0x443311);
-  matFilament.emissiveIntensity = on ? 2.0 : 0.3;
-
-  // Bulb glass
-  matBulbGlass.opacity = on ? 0.22 : 0.08;
-  matBulbGlass.emissive = new THREE.Color(on ? 0xffdd66 : 0x000000);
-  matBulbGlass.emissiveIntensity = on ? 0.5 : 0;
-
-  // Bloom glow spheres
-  bloomGlowMat.opacity = on ? 0.08 : 0;
-  bloomGlow2Mat.opacity = on ? 0.03 : 0;
+function setMotorActive(on) {
+  motorActive = on;
+  // Motor body color: brighter when on
+  matMotorBody.color.set(on ? 0x777777 : 0x555555);
+  matMotorBody.emissive = new THREE.Color(on ? 0x222222 : 0x000000);
+  matMotorBody.emissiveIntensity = on ? 0.3 : 0;
 }
 
 // ═══════════════════════════════════════════════════
@@ -833,7 +804,7 @@ function clearHi() {
   solution.material = matSolution;
   surface.material = surfMat;
   wire.material = matWire;
-  setBulbGlow(false);
+  setMotorActive(false);
 }
 
 function hiElectrode() {
@@ -846,7 +817,7 @@ function hiSolution() {
 
 function hiWire() {
   wire.material = matWireHi;
-  setBulbGlow(true);
+  setMotorActive(true);
 }
 
 // ═══════════════════════════════════════════════════
@@ -952,7 +923,7 @@ function toggleParticles() {
   document.getElementById('btnParticle').textContent = particlesOn ? '停止粒子' : '启动粒子';
 
   if (particlesOn) {
-    setBulbGlow(true);
+    setMotorActive(true);
     hIonLabel.visible = true;
     sIonLabel.visible = true;
   }
@@ -963,7 +934,7 @@ function toggleParticles() {
     lblH2O.visible = false;
     hIonLabel.visible = false;
     sIonLabel.visible = false;
-    if (step !== 3) setBulbGlow(false);
+    if (step !== 3) setMotorActive(false);
   }
 }
 
@@ -987,12 +958,10 @@ function animate() {
   // Subtle solution surface wave
   surface.position.y = solTop + Math.sin(t * 0.8) * 0.02;
 
-  // Bulb glow pulsation when active
-  if (bulbGlowing) {
-    const pulse = 0.85 + Math.sin(t * 3) * 0.15;
-    bulbLight.intensity = 5 * pulse;
-    bloomGlowMat.opacity = 0.08 * pulse;
-    bloomGlow2Mat.opacity = 0.03 * pulse;
+  // Motor shaft rotation when active
+  if (motorActive) {
+    motorShaft.rotation.x += 0.1;
+    motorBlade.rotation.x += 0.1;
   }
 
   renderer.render(scene, camera);

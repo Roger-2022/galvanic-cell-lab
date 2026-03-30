@@ -125,7 +125,7 @@
         </div>
         <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(3)">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#c9a84c"></div><span style="font-size:.82rem;font-weight:600;color:#c9a84c">电子导体</span></div>
-          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">导线构成外电路，电子从负极定向移动到正极</p>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">导线和G表构成外电路，电子经G表从负极流向正极，G表右偏</p>
         </div>
         <div style="background:rgba(155,126,216,0.05);border:1px solid rgba(155,126,216,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(4)">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#9b7ed8"></div><span style="font-size:.82rem;font-weight:600;color:#9b7ed8">离子导体</span></div>
@@ -159,11 +159,11 @@
     </div>
     <div class="detail-content" id="detail-econductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--gold)"></div><div class="detail-title">电子导体</div></div>
-      <div class="detail-section"><div class="detail-section-label">定义</div><p>电子导体即<span class="highlight hl-gold">导线</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
-      <div class="detail-section"><div class="detail-section-label">工作原理</div><p>电子从 Fe（负极）沿导线流向 Cu（正极）。电子的<span class="highlight hl-gold">定向移动</span>产生电流。</p></div>
+      <div class="detail-section"><div class="detail-section-label">定义</div><p>电子导体即<span class="highlight hl-gold">导线和G表</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
+      <div class="detail-section"><div class="detail-section-label">工作原理</div><p>电子从 Fe（负极）经导线和<span class="highlight hl-gold">G表</span>流向 Cu（正极）。G表指针右偏，表示电流从左到右。电子的<span class="highlight hl-gold">定向移动</span>产生电流。</p></div>
       <div class="detail-section"><div class="detail-section-label">关键</div><p>外电路<span class="highlight hl-gold">电流方向</span>与电子流向相反——电流从正极（Cu）流向负极（Fe），电子从负极（Fe）流向正极（Cu）。</p></div>
       <div class="detail-section"><div class="detail-section-label">闭合回路</div><p>电路必须<span class="highlight hl-gold">闭合</span>，否则原电池无法工作。导线断开则无电子流动，反应停止。</p></div>
-      <div class="detail-keywords"><span class="keyword-tag">导线</span><span class="keyword-tag">外电路</span><span class="keyword-tag">定向移动</span><span class="keyword-tag">闭合回路</span></div>
+      <div class="detail-keywords"><span class="keyword-tag">导线</span><span class="keyword-tag">G表</span><span class="keyword-tag">外电路</span><span class="keyword-tag">定向移动</span><span class="keyword-tag">闭合回路</span></div>
     </div>
     <div class="detail-content" id="detail-iconductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--purple)"></div><div class="detail-title">离子导体</div></div>
@@ -389,6 +389,52 @@ const wire = new THREE.Mesh(wireGeo, matWire);
 wire.name = 'wire';
 model.add(wire);
 
+// ═══════════════════════════════════════════════════
+//  G-METER (galvanometer) at the peak of the wire arc
+// ═══════════════════════════════════════════════════
+const gmeterGroup = new THREE.Group();
+gmeterGroup.position.set(0, 9, 0);
+
+// Meter face — flat dark disc facing camera (+Z)
+const meterFaceGeo = new THREE.CylinderGeometry(0.6, 0.6, 0.15, 32);
+const meterFaceMat = new THREE.MeshStandardMaterial({
+  color: 0x222222, metalness: 0.3, roughness: 0.6
+});
+const meterFace = new THREE.Mesh(meterFaceGeo, meterFaceMat);
+meterFace.rotation.x = Math.PI / 2; // face forward
+gmeterGroup.add(meterFace);
+
+// Outer ring — silver torus
+const ringGeo = new THREE.TorusGeometry(0.6, 0.06, 16, 48);
+const ringMat = new THREE.MeshStandardMaterial({
+  color: 0x888888, metalness: 0.9, roughness: 0.2
+});
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = Math.PI / 2;
+gmeterGroup.add(ring);
+
+// Needle — thin red box, tilted ~40° right (clockwise when viewed from front)
+const needleGeo = new THREE.BoxGeometry(0.03, 0.45, 0.02);
+const needleMat = new THREE.MeshStandardMaterial({
+  color: 0xdd4444, emissive: 0xdd4444, emissiveIntensity: 0.3
+});
+const needle = new THREE.Mesh(needleGeo, needleMat);
+needle.position.set(0, 0, 0.09); // slightly in front of face
+needle.geometry.translate(0, 0.2, 0); // pivot at bottom
+needle.rotation.z = -0.7; // tilt ~40° to the right
+gmeterGroup.add(needle);
+
+// Center pivot — small sphere
+const pivotGeo = new THREE.SphereGeometry(0.06, 12, 12);
+const pivotMat = new THREE.MeshStandardMaterial({
+  color: 0xaaaaaa, metalness: 0.8, roughness: 0.3
+});
+const pivot = new THREE.Mesh(pivotGeo, pivotMat);
+pivot.position.set(0, 0, 0.09);
+gmeterGroup.add(pivot);
+
+model.add(gmeterGroup);
+
 // NO gas inlet tubes (removed)
 // NO bulb (removed)
 
@@ -411,7 +457,8 @@ function mkLabel(text, pos, color, extraClass) {
 mkLabel('负极 (Fe)', new THREE.Vector3(-2.2, 2, 2.2), '#5cc4c4');
 mkLabel('正极 (Cu)', new THREE.Vector3(2.2, 2, 2.2), '#5cc4c4');
 mkLabel('稀硫酸', new THREE.Vector3(0, 1.5, 2.2), '#9b7ed8');
-mkLabel('导线', new THREE.Vector3(0, 9.5, 0), '#c9a84c');
+mkLabel('G', new THREE.Vector3(0, 9.9, 0), '#dd4444');
+mkLabel('导线', new THREE.Vector3(0, 7.8, 0), '#c9a84c');
 
 const titleLabel = mkLabel('铁-铜原电池', new THREE.Vector3(0, -1, 0), '#5cc4c4');
 titleLabel.element.className = 'label-3d title';
@@ -627,7 +674,21 @@ function updateParticles(time) {
     b.material.opacity = 0.15 + (b.userData.y / solH) * 0.45;
   });
 
-  if (!particlesOn) return;
+  if (!particlesOn) {
+    // Reset needle and Fe electrode when particles are off
+    needle.rotation.z = -0.7;
+    needleMat.emissiveIntensity = 0.3;
+    elecL.scale.y = 1.0;
+    return;
+  }
+
+  // G-meter needle animation — subtle oscillation around deflected position
+  needle.rotation.z = -0.7 + Math.sin(time * 1.5) * 0.05;
+  needleMat.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2;
+
+  // Fe electrode dissolution animation — oscillates scale to simulate dissolving
+  const pingpong = (Math.sin(time * 0.628) + 1) / 2; // period ~10 sec, range 0..1
+  elecL.scale.y = 0.6 + 0.4 * pingpong;
 
   // Electron particles along wire curve (LEFT to RIGHT)
   eParticles.forEach(p => {
@@ -766,6 +827,8 @@ function clearHi() {
   solution.material = matSolution;
   surface.material = surfMat;
   wire.material = matWire;
+  ringMat.emissive = new THREE.Color(0x000000);
+  ringMat.emissiveIntensity = 0;
 }
 
 function hiElectrode() {
@@ -779,6 +842,8 @@ function hiSolution() {
 
 function hiWire() {
   wire.material = matWireHi;
+  ringMat.emissive = new THREE.Color(0xc9a84c);
+  ringMat.emissiveIntensity = 0.5;
 }
 
 // ═══════════════════════════════════════════════════

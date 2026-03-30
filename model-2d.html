@@ -128,16 +128,19 @@
         <path d="M239 110 L239 55 Q239 35 259 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
         <!-- Wire: right electrode to bulb -->
         <path d="M481 110 L481 55 Q481 35 461 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
-        <!-- Bulb outer glow (animated) -->
-        <circle cx="360" cy="35" r="28" id="bGlow" fill="url(#bulbGlow)" opacity="0"/>
-        <!-- Light cone below bulb (animated) -->
-        <polygon id="bCone" points="348,50 372,50 390,90 330,90" fill="rgba(255,220,100,0)" opacity="0"/>
-        <!-- Bulb body -->
-        <circle cx="360" cy="35" r="16" fill="rgba(255,220,100,0.03)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" id="bC"/>
-        <!-- Filament -->
-        <path d="M354 29 Q357 23 360 29 Q363 23 366 29" fill="none" stroke="rgba(255,220,100,0.3)" stroke-width="1.5" id="bF"/>
-        <!-- Bulb label -->
-        <text x="360" y="64" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">马达</text>
+        <!-- Motor body (horizontal rectangle) -->
+        <rect x="342" y="23" width="36" height="24" rx="4" fill="rgba(100,100,120,0.3)" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" id="motorBody"/>
+        <!-- Motor end cap -->
+        <circle cx="378" cy="35" r="5" fill="rgba(140,140,160,0.25)" stroke="rgba(255,255,255,0.15)" stroke-width="0.8"/>
+        <!-- Motor shaft (rotates when active) -->
+        <line x1="383" y1="35" x2="393" y2="35" stroke="rgba(200,200,200,0.4)" stroke-width="2" stroke-linecap="round" id="motorShaft"/>
+        <!-- Spinning indicator line on shaft end -->
+        <g id="motorSpin" transform-origin="388 35">
+          <line x1="385" y1="35" x2="391" y2="32" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+          <line x1="385" y1="35" x2="391" y2="38" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+        </g>
+        <!-- Motor label -->
+        <text x="360" y="60" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">马达</text>
         <!-- Electron direction arrows (shown when animated) -->
         <g id="eA" opacity="0">
           <text x="280" y="28" fill="#c9a84c" font-size="10">e⁻ →</text>
@@ -613,57 +616,47 @@ function createAllParticles() {
   }
 }
 
-// ─── Bulb glow animation ───
-let bulbGlowPhase = 0;
+// ─── Motor spin animation ───
+let motorSpinAngle = 0;
 
-function updateBulbGlow() {
+function updateMotorSpin() {
   if (!an) return;
-  bulbGlowPhase += 0.02;
-  const flicker = 0.85 + 0.15 * Math.sin(bulbGlowPhase * 3.7) * Math.sin(bulbGlowPhase * 1.3);
+  motorSpinAngle += 4;
 
-  const bC = document.getElementById('bC');
-  const bF = document.getElementById('bF');
-  const bGlow = document.getElementById('bGlow');
-  const bCone = document.getElementById('bCone');
+  const motorBody = document.getElementById('motorBody');
+  const motorShaft = document.getElementById('motorShaft');
+  const motorSpin = document.getElementById('motorSpin');
 
-  // Bulb body glow
-  bC.setAttribute('fill', `rgba(255,220,100,${0.15 * flicker})`);
-  bC.setAttribute('stroke', `rgba(255,220,100,${0.7 * flicker})`);
-  bC.setAttribute('stroke-width', '2');
+  // Motor body brightens when active
+  motorBody.setAttribute('fill', 'rgba(130,130,160,0.5)');
+  motorBody.setAttribute('stroke', 'rgba(255,255,255,0.4)');
 
-  // Filament glow
-  bF.setAttribute('stroke', `rgba(255,240,150,${flicker})`);
-  bF.setAttribute('stroke-width', '2');
+  // Shaft brightens
+  motorShaft.setAttribute('stroke', 'rgba(220,220,230,0.7)');
 
-  // Radial glow
-  const stops = bGlow.parentElement.querySelector('#bulbGlow');
-  if (stops) {
-    const stopEls = stops.querySelectorAll('stop');
-    if (stopEls.length >= 3) {
-      stopEls[0].setAttribute('stop-opacity', (0.4 * flicker).toFixed(3));
-      stopEls[1].setAttribute('stop-opacity', (0.15 * flicker).toFixed(3));
-      stopEls[2].setAttribute('stop-opacity', '0');
-    }
-  }
-  bGlow.setAttribute('opacity', '1');
-
-  // Light cone
-  bCone.setAttribute('fill', `rgba(255,220,100,${0.03 * flicker})`);
-  bCone.setAttribute('opacity', '1');
+  // Rotate spinning indicator
+  motorSpin.setAttribute('transform', `rotate(${motorSpinAngle % 360} 388 35)`);
+  const spinLines = motorSpin.querySelectorAll('line');
+  spinLines.forEach(l => l.setAttribute('stroke', 'rgba(255,255,255,0.5)'));
 }
 
-function resetBulbGlow() {
-  const bC = document.getElementById('bC');
-  const bF = document.getElementById('bF');
-  const bGlow = document.getElementById('bGlow');
-  const bCone = document.getElementById('bCone');
-  bC.setAttribute('fill', 'rgba(255,220,100,0.03)');
-  bC.setAttribute('stroke', 'rgba(255,255,255,0.2)');
-  bC.setAttribute('stroke-width', '1.5');
-  bF.setAttribute('stroke', 'rgba(255,220,100,0.3)');
-  bF.setAttribute('stroke-width', '1.5');
-  bGlow.setAttribute('opacity', '0');
-  bCone.setAttribute('opacity', '0');
+function resetMotorSpin() {
+  motorSpinAngle = 0;
+  const motorBody = document.getElementById('motorBody');
+  const motorShaft = document.getElementById('motorShaft');
+  const motorSpin = document.getElementById('motorSpin');
+
+  // Reset motor body to dim state
+  motorBody.setAttribute('fill', 'rgba(100,100,120,0.3)');
+  motorBody.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+
+  // Reset shaft
+  motorShaft.setAttribute('stroke', 'rgba(200,200,200,0.4)');
+
+  // Reset spin indicator
+  motorSpin.setAttribute('transform', 'rotate(0 388 35)');
+  const spinLines = motorSpin.querySelectorAll('line');
+  spinLines.forEach(l => l.setAttribute('stroke', 'rgba(255,255,255,0.2)'));
 }
 
 // ─── Vignette ───
@@ -696,8 +689,8 @@ function animate() {
   // Vignette overlay
   drawVignette(cx);
 
-  // Bulb glow
-  updateBulbGlow();
+  // Motor spin
+  updateMotorSpin();
 
   af = requestAnimationFrame(animate);
 }
@@ -715,7 +708,7 @@ function toggleAnim() {
   } else {
     cancelAnimationFrame(af);
     cx.clearRect(0, 0, cv.width, cv.height);
-    resetBulbGlow();
+    resetMotorSpin();
   }
 }
 
