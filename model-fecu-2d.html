@@ -650,18 +650,21 @@ function animate() {
   // Draw electrons
   electrons.forEach(e => { e.update(); e.draw(cx); });
 
-  // Fe electrode dissolution animation (pingpong: shrink ~30% then grow back over ~8s)
+  // Fe electrode erosion: slow dissolve (~8s) then instant reset
   const feEl = document.getElementById('feElectrode');
   if (feEl) {
-    const elapsed = (performance.now() - feAnimStart) / 1000; // seconds
-    const cycle = 8; // full pingpong cycle in seconds
-    const phase = (elapsed % cycle) / cycle; // 0..1
-    // pingpong: 0→1→0 using triangle wave
-    const tri = phase < 0.5 ? phase * 2 : 2 - phase * 2; // 0→1→0
-    const shrinkFrac = tri * 0.3; // max 30% shrink
-    const origH = 320, origY = 110;
-    const newH = origH * (1 - shrinkFrac);
-    // Top stays fixed at y=110 (connected to wire), bottom erodes upward
+    const elapsed = (performance.now() - feAnimStart) / 1000;
+    const cycle = 9; // 8s dissolve + 1s pause at full
+    const t = elapsed % cycle;
+    const origH = 320;
+    let newH;
+    if (t < 8) {
+      // Slow linear erosion: 320 → 224 (30% shrink) over 8 seconds
+      newH = origH * (1 - 0.3 * (t / 8));
+    } else {
+      // Instant reset to full
+      newH = origH;
+    }
     feEl.setAttribute('height', newH.toFixed(1));
   }
 

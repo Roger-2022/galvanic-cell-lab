@@ -687,11 +687,18 @@ function updateParticles(time) {
   needle.rotation.z = -0.7 + Math.sin(time * 1.5) * 0.05;
   needleMat.emissiveIntensity = 0.5 + Math.sin(time * 3) * 0.2;
 
-  // Fe electrode erosion animation — bottom erodes upward (top stays at y=7)
-  const pingpong = (Math.sin(time * 0.628) + 1) / 2; // period ~10 sec, range 0..1
-  const s = 0.65 + 0.35 * pingpong; // scale 0.65..1.0
+  // Fe electrode erosion: slow dissolve (~8s) then instant reset
+  const cycle = 9; // 8s dissolve + 1s pause at full
+  const phase = (time % cycle) / cycle;
+  let s;
+  if (phase < 8 / cycle) {
+    // Slow linear erosion over 8 seconds: 1.0 → 0.65
+    s = 1.0 - 0.35 * (phase / (8 / cycle));
+  } else {
+    // Instant reset to full size
+    s = 1.0;
+  }
   elecL.scale.y = s;
-  // Keep top fixed at y=7: center = 7 - (elecH_total * s) / 2
   elecL.position.y = 7 - (elecH_total * s) / 2;
 
   // Electron particles along wire curve (LEFT to RIGHT)
