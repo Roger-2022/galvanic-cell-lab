@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>微观模型讲解 — 原电池探究平台</title>
+<title>铁-铜原电池 微观模型 — 原电池探究平台</title>
 <script type="importmap">
 {
   "imports": {
@@ -36,6 +36,7 @@
   .label-3d.ion-label{font-size:13px;font-weight:700;padding:4px 12px;border-radius:8px;border:1.5px solid;letter-spacing:.05em}
   .label-3d.ion-h{color:#ff4466;background:rgba(255,68,102,0.15);border-color:rgba(255,68,102,0.4)}
   .label-3d.ion-s{color:#4466ff;background:rgba(68,102,255,0.15);border-color:rgba(68,102,255,0.4)}
+  .label-3d.ion-fe{color:#44cc44;background:rgba(68,204,68,0.15);border-color:rgba(68,204,68,0.4)}
   .mode-bar{position:absolute;bottom:1.5rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.5rem;padding:.5rem 1.2rem;background:rgba(0,0,0,0.5);backdrop-filter:blur(10px);border-radius:30px;border:1px solid var(--border);z-index:10}
   .step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.15);cursor:pointer;transition:all .3s}
   .step-dot.active{width:24px;border-radius:4px;background:var(--cyan)}
@@ -78,7 +79,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <a href="/" class="back-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</a>
-      <div class="topbar-title">微观模型讲解</div>
+      <div class="topbar-title">铁-铜原电池 微观模型</div>
       <div class="topbar-badge">3D 交互</div>
     </div>
     <div class="topbar-controls">
@@ -101,7 +102,7 @@
       <div class="step-dot" onclick="window._goToStep(4)"></div>
       <span class="step-label" id="stepLabel">总览</span>
     </div>
-    <a href="/model-2d" class="switch-btn">切换 2D 视图</a>
+    <a href="/model-fecu-2d" class="switch-btn">切换 2D 视图</a>
   </div>
   <button class="sidebar-toggle" id="sidebarToggle" onclick="window._toggleSidebar()" title="查看详情">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="17" y2="7"/><line x1="9" y1="11" x2="17" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
@@ -110,17 +111,17 @@
     <button class="sidebar-close" onclick="window._closeSidebar()" title="关闭">&times;</button>
     <div class="panel-placeholder" id="panelPlaceholder" style="align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:1rem">
       <div style="text-align:center;padding-top:.5rem">
-        <div style="font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em;margin-bottom:.3rem">原电池四大构成要素</div>
-        <p style="font-size:.78rem;color:rgba(255,255,255,0.4);line-height:1.5">以氢氧燃料电池为例，原电池将氧化还原反应的化学能直接转化为电能。点击模型部件或使用「下一步」逐步探究。</p>
+        <div style="font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:600;letter-spacing:.04em;margin-bottom:.3rem">铁-铜原电池 四大构成要素</div>
+        <p style="font-size:.78rem;color:rgba(255,255,255,0.4);line-height:1.5">以铁-铜原电池为例，原电池将氧化还原反应的化学能直接转化为电能。点击模型部件或使用「下一步」逐步探究。</p>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
         <div style="background:rgba(92,196,196,0.05);border:1px solid rgba(92,196,196,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(1)">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#5cc4c4"></div><span style="font-size:.82rem;font-weight:600;color:#5cc4c4">电极材料</span></div>
-          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">容纳反应发生的导电场所，如 Pt 电极、石墨</p>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">容纳反应发生的导电场所，Fe 做负极，Cu 做正极</p>
         </div>
         <div style="background:rgba(92,184,92,0.05);border:1px solid rgba(92,184,92,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(2)">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#5cb85c"></div><span style="font-size:.82rem;font-weight:600;color:#5cb85c">电极反应物</span></div>
-          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">参与氧化还原反应的物质：H₂（还原剂）、O₂（氧化剂）</p>
+          <p style="font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">参与氧化还原反应：Fe 失电子，H⁺ 得电子</p>
         </div>
         <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:10px;padding:.8rem;cursor:pointer" onclick="window._goToStep(3)">
           <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.4rem"><div style="width:8px;height:8px;border-radius:50%;background:#c9a84c"></div><span style="font-size:.82rem;font-weight:600;color:#c9a84c">电子导体</span></div>
@@ -132,10 +133,10 @@
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:10px;padding:.8rem">
-        <div style="font-size:.68rem;color:rgba(255,255,255,0.3);letter-spacing:.08em;margin-bottom:.5rem">原电池 vs 燃烧</div>
+        <div style="font-size:.68rem;color:rgba(255,255,255,0.3);letter-spacing:.08em;margin-bottom:.5rem">铁-铜原电池 vs 氢氧燃料电池</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-size:.72rem;color:rgba(255,255,255,0.5);line-height:1.5">
-          <div><span style="color:#5cb85c">燃烧：</span>H₂与O₂直接接触，化学能→热能，无电流</div>
-          <div><span style="color:#5cc4c4">原电池：</span>反应分区进行，化学能→电能，产生电流</div>
+          <div><span style="color:#5cb85c">Fe-Cu：</span>Fe 本身作负极被消耗，H⁺在 Cu 上得电子产生 H₂</div>
+          <div><span style="color:#5cc4c4">燃料电池：</span>Pt 电极不参与反应，H₂和O₂分别在两极反应</div>
         </div>
       </div>
       <p style="font-size:.68rem;color:rgba(255,255,255,0.25);text-align:center">拖拽旋转 · 滚轮缩放 · 点击部件查看详情</p>
@@ -143,33 +144,33 @@
     <div class="detail-content" id="detail-electrode">
       <div class="detail-header"><div class="detail-dot" style="background:var(--cyan)"></div><div class="detail-title">电极材料</div></div>
       <div class="detail-section"><div class="detail-section-label">定义</div><p>电极材料是<span class="highlight hl-cyan">容纳电极反应发生的场所</span>，为反应物提供得失电子的界面。</p></div>
-      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用两个<span class="highlight hl-cyan">铂（Pt）电极</span>。铂具有优良的导电性和化学稳定性，能吸附气体分子并催化电极反应。</p></div>
-      <div class="detail-section"><div class="detail-section-label">核心要求</div><p>电极材料的基本要求是<span class="highlight hl-cyan">能够导电</span>。石墨虽非金属，也可作电极材料。</p></div>
-      <div class="detail-section"><div class="detail-section-label">关键理解</div><p>氢氧燃料电池中，Pt电极<span class="highlight hl-cyan">本身不参加化学反应</span>，仅提供反应场所。</p></div>
-      <div class="detail-keywords"><span class="keyword-tag">导电性</span><span class="keyword-tag">催化作用</span><span class="keyword-tag">反应场所</span><span class="keyword-tag">Pt / 石墨</span></div>
+      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用<span class="highlight hl-cyan">铁（Fe）做负极</span>，<span class="highlight hl-cyan">铜（Cu）做正极</span>。铁比铜活泼，会优先失去电子发生氧化反应。</p></div>
+      <div class="detail-section"><div class="detail-section-label">核心要求</div><p>两种<span class="highlight hl-cyan">活泼性不同的导体</span>。活泼性较强的金属做负极，较弱的做正极。</p></div>
+      <div class="detail-section"><div class="detail-section-label">关键理解</div><p>负极（Fe）比正极（Cu）活泼，<span class="highlight hl-cyan">Fe 会失去电子</span>变成 Fe²⁺ 进入溶液，而 Cu 电极本身不参与反应。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">活泼性差异</span><span class="keyword-tag">Fe 负极</span><span class="keyword-tag">Cu 正极</span><span class="keyword-tag">导电性</span></div>
     </div>
     <div class="detail-content" id="detail-reactant">
       <div class="detail-header"><div class="detail-dot" style="background:var(--green)"></div><div class="detail-title">电极反应物</div></div>
       <div class="detail-section"><div class="detail-section-label">定义</div><p>电极反应物是参与<span class="highlight hl-green">氧化还原反应</span>的物质——还原剂（失电子）和氧化剂（得电子）。</p></div>
-      <div class="detail-section"><div class="detail-section-label">负极反应</div><p><span class="highlight hl-green">H₂</span> 作为还原剂，在负极失去电子：</p><div class="detail-formula">H₂ - 2e⁻ → 2H⁺</div></div>
-      <div class="detail-section"><div class="detail-section-label">正极反应</div><p><span class="highlight hl-green">O₂</span> 作为氧化剂，在正极得到电子：</p><div class="detail-formula">O₂ + 4e⁻ + 4H⁺ → 2H₂O</div></div>
-      <div class="detail-section"><div class="detail-section-label">总反应</div><div class="detail-formula">2H₂ + O₂ → 2H₂O</div><p style="margin-top:.5rem;font-size:.8rem">与燃烧相同的反应，但<span class="highlight hl-green">不需要点燃</span>。</p></div>
-      <div class="detail-keywords"><span class="keyword-tag">还原剂 H₂</span><span class="keyword-tag">氧化剂 O₂</span><span class="keyword-tag">氧化还原反应</span></div>
+      <div class="detail-section"><div class="detail-section-label">负极反应（氧化反应）</div><p><span class="highlight hl-green">Fe</span> 作为还原剂，在负极失去电子：</p><div class="detail-formula">Fe − 2e⁻ = Fe²⁺</div></div>
+      <div class="detail-section"><div class="detail-section-label">正极反应（还原反应）</div><p><span class="highlight hl-green">H⁺</span> 作为氧化剂，在正极得到电子：</p><div class="detail-formula">2H⁺ + 2e⁻ = H₂↑</div></div>
+      <div class="detail-section"><div class="detail-section-label">总反应</div><div class="detail-formula">Fe + 2H⁺ = Fe²⁺ + H₂↑</div><p style="margin-top:.5rem;font-size:.8rem">铁溶解进入溶液，铜极表面<span class="highlight hl-green">冒出气泡</span>（H₂）。</p></div>
+      <div class="detail-keywords"><span class="keyword-tag">Fe 失电子</span><span class="keyword-tag">H⁺ 得电子</span><span class="keyword-tag">氧化还原</span></div>
     </div>
     <div class="detail-content" id="detail-econductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--gold)"></div><div class="detail-title">电子导体</div></div>
       <div class="detail-section"><div class="detail-section-label">定义</div><p>电子导体即<span class="highlight hl-gold">导线</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
-      <div class="detail-section"><div class="detail-section-label">工作原理</div><p>负极 H₂ 失去电子后，电子沿导线经过用电器流向正极。电子的<span class="highlight hl-gold">定向移动</span>产生电流。</p></div>
-      <div class="detail-section"><div class="detail-section-label">与燃烧的区别</div><p>燃烧时 H₂ 与 O₂ 直接接触——<span class="highlight hl-gold">无定向移动，不产生电流</span>。原电池将氧化还原反应分区进行，迫使电子通过外电路定向流动。</p></div>
-      <div class="detail-section"><div class="detail-section-label">关键</div><p>电路必须<span class="highlight hl-gold">闭合</span>，否则原电池无法工作。</p></div>
+      <div class="detail-section"><div class="detail-section-label">工作原理</div><p>电子从 Fe（负极）沿导线流向 Cu（正极）。电子的<span class="highlight hl-gold">定向移动</span>产生电流。</p></div>
+      <div class="detail-section"><div class="detail-section-label">关键</div><p>外电路<span class="highlight hl-gold">电流方向</span>与电子流向相反——电流从正极（Cu）流向负极（Fe），电子从负极（Fe）流向正极（Cu）。</p></div>
+      <div class="detail-section"><div class="detail-section-label">闭合回路</div><p>电路必须<span class="highlight hl-gold">闭合</span>，否则原电池无法工作。导线断开则无电子流动，反应停止。</p></div>
       <div class="detail-keywords"><span class="keyword-tag">导线</span><span class="keyword-tag">外电路</span><span class="keyword-tag">定向移动</span><span class="keyword-tag">闭合回路</span></div>
     </div>
     <div class="detail-content" id="detail-iconductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--purple)"></div><div class="detail-title">离子导体</div></div>
       <div class="detail-section"><div class="detail-section-label">定义</div><p>离子导体即<span class="highlight hl-purple">电解质溶液</span>，构成内电路，通过离子定向迁移传导电荷。</p></div>
-      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用<span class="highlight hl-purple">稀硫酸</span>。H⁺ 向正极迁移，SO₄²⁻ 向负极迁移。</p></div>
-      <div class="detail-section"><div class="detail-section-label">为什么不能用纯水？</div><p>纯水几乎不含自由离子，无法导电，相当于<span class="highlight hl-purple">断路</span>。</p></div>
-      <div class="detail-section"><div class="detail-section-label">替代方案</div><p>NaOH 溶液可以（能导电），无水乙醇<span class="highlight hl-purple">不可以</span>（非电解质）。</p></div>
+      <div class="detail-section"><div class="detail-section-label">本装置</div><p>使用<span class="highlight hl-purple">稀硫酸（H₂SO₄）</span>作为电解质溶液。</p></div>
+      <div class="detail-section"><div class="detail-section-label">离子迁移</div><p><span class="highlight hl-purple">H⁺ 向正极（Cu）迁移</span>，<span class="highlight hl-purple">SO₄²⁻ 向负极（Fe）迁移</span>。离子的定向移动使溶液中形成电流。</p></div>
+      <div class="detail-section"><div class="detail-section-label">为什么需要</div><p>离子迁移维持溶液<span class="highlight hl-purple">电中性</span>，形成闭合回路。若无电解质溶液，内电路断开，原电池无法工作。</p></div>
       <div class="detail-keywords"><span class="keyword-tag">电解质溶液</span><span class="keyword-tag">内电路</span><span class="keyword-tag">离子迁移</span><span class="keyword-tag">H₂SO₄</span></div>
     </div>
   </div>
@@ -264,31 +265,33 @@ const matSolutionHi = new THREE.MeshPhysicalMaterial({
   emissive: 0x9b7ed8, emissiveIntensity: 0.4,
   roughness: 0.1, side: THREE.DoubleSide, depthWrite: false
 });
-const matElectrode = new THREE.MeshStandardMaterial({
-  color: 0xd8dde4, metalness: 0.3, roughness: 0.4,
-  emissive: 0x8899aa, emissiveIntensity: 0.5
+
+// Fe electrode (left, negative) — iron brown
+const matElectrodeFe = new THREE.MeshStandardMaterial({
+  color: 0x8B4513, metalness: 0.7, roughness: 0.4,
+  emissive: 0x5a2d0a, emissiveIntensity: 0.3
 });
-const matElectrodeHi = new THREE.MeshStandardMaterial({
-  color: 0xaaeedd, metalness: 0.3, roughness: 0.3,
+const matElectrodeFeHi = new THREE.MeshStandardMaterial({
+  color: 0xaa6633, metalness: 0.7, roughness: 0.3,
   emissive: 0x5cc4c4, emissiveIntensity: 0.6
 });
+
+// Cu electrode (right, positive) — copper orange
+const matElectrodeCu = new THREE.MeshStandardMaterial({
+  color: 0xB87333, metalness: 0.8, roughness: 0.35,
+  emissive: 0x7a4a22, emissiveIntensity: 0.3
+});
+const matElectrodeCuHi = new THREE.MeshStandardMaterial({
+  color: 0xd49555, metalness: 0.8, roughness: 0.25,
+  emissive: 0x5cc4c4, emissiveIntensity: 0.6
+});
+
 const matWire = new THREE.MeshStandardMaterial({
   color: 0xc9a84c, metalness: 0.85, roughness: 0.25
 });
 const matWireHi = new THREE.MeshStandardMaterial({
   color: 0xc9a84c, metalness: 0.9, roughness: 0.15,
   emissive: 0xc9a84c, emissiveIntensity: 0.5
-});
-const matBulbGlass = new THREE.MeshPhysicalMaterial({
-  color: 0xffffff, transparent: true, opacity: 0.08,
-  roughness: 0.05, transmission: 0.9,
-  side: THREE.DoubleSide, depthWrite: false
-});
-const matFilament = new THREE.MeshStandardMaterial({
-  color: 0x886633, emissive: 0x443311, emissiveIntensity: 0.3
-});
-const matBulbBase = new THREE.MeshStandardMaterial({
-  color: 0x888888, metalness: 0.7, roughness: 0.4
 });
 
 const model = new THREE.Group();
@@ -352,33 +355,33 @@ surface.name = 'solution';
 model.add(surface);
 
 // ═══════════════════════════════════════════════════
-//  ELECTRODES — thin plates INSIDE beaker, extending above
+//  ELECTRODES — Fe (left, negative) and Cu (right, positive)
 //  y=1 (inside beaker) to y=7 (above beaker top at y=5)
 // ═══════════════════════════════════════════════════
 const elecW = 0.15, elecD = 1.8, elecH_total = 6; // from y=1 to y=7
 const elecGeo = new THREE.BoxGeometry(elecW, elecH_total, elecD);
 
-const elecL = new THREE.Mesh(elecGeo, matElectrode);
-elecL.position.set(-2.2, 1 + elecH_total / 2, 0); // center at y=4
+// Fe electrode (left, negative)
+const elecL = new THREE.Mesh(elecGeo, matElectrodeFe);
+elecL.position.set(-2.2, 1 + elecH_total / 2, 0);
 elecL.name = 'electrode';
 model.add(elecL);
 
-const elecR = new THREE.Mesh(elecGeo.clone(), matElectrode);
-elecR.position.set(2.2, 1 + elecH_total / 2, 0); // center at y=4
+// Cu electrode (right, positive)
+const elecR = new THREE.Mesh(elecGeo.clone(), matElectrodeCu);
+elecR.position.set(2.2, 1 + elecH_total / 2, 0);
 elecR.name = 'electrode';
 model.add(elecR);
 
 // ═══════════════════════════════════════════════════
-//  WIRES — from electrode tops (y=7) arching to bulb
+//  WIRE — smooth arc from Fe top to Cu top (no bulb)
 // ═══════════════════════════════════════════════════
 const wireR = 0.06;
 const wireCurve = new THREE.CatmullRomCurve3([
   new THREE.Vector3(-2.2, 7, 0),
-  new THREE.Vector3(-2.2, 8.5, 0),
-  new THREE.Vector3(-1.2, 10, 0),
-  new THREE.Vector3(0, 10.5, 0),
-  new THREE.Vector3(1.2, 10, 0),
-  new THREE.Vector3(2.2, 8.5, 0),
+  new THREE.Vector3(-1.5, 8.5, 0),
+  new THREE.Vector3(0, 9, 0),
+  new THREE.Vector3(1.5, 8.5, 0),
   new THREE.Vector3(2.2, 7, 0),
 ]);
 const wireGeo = new THREE.TubeGeometry(wireCurve, 64, wireR, 8, false);
@@ -386,80 +389,8 @@ const wire = new THREE.Mesh(wireGeo, matWire);
 wire.name = 'wire';
 model.add(wire);
 
-// ═══════════════════════════════════════════════════
-//  LIGHT BULB at top center of wire arc
-// ═══════════════════════════════════════════════════
-const bulbGroup = new THREE.Group();
-bulbGroup.position.set(0, 10.5, 0);
-
-// Glass bulb
-const bulbGlassGeo = new THREE.SphereGeometry(0.55, 32, 32);
-const bulbGlass = new THREE.Mesh(bulbGlassGeo, matBulbGlass);
-bulbGlass.name = 'wire';
-bulbGroup.add(bulbGlass);
-
-// Base
-const bulbBaseGeo = new THREE.CylinderGeometry(0.25, 0.3, 0.4, 16);
-const bulbBase = new THREE.Mesh(bulbBaseGeo, matBulbBase);
-bulbBase.position.y = -0.6;
-bulbBase.name = 'wire';
-bulbGroup.add(bulbBase);
-
-// Filament
-const filCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(-0.12, -0.3, 0),
-  new THREE.Vector3(-0.08, 0.05, 0.05),
-  new THREE.Vector3(0, 0.2, -0.03),
-  new THREE.Vector3(0.08, 0.05, 0.05),
-  new THREE.Vector3(0.12, -0.3, 0),
-]);
-const filGeo = new THREE.TubeGeometry(filCurve, 20, 0.02, 6, false);
-const filament = new THREE.Mesh(filGeo, matFilament);
-filament.name = 'wire';
-bulbGroup.add(filament);
-
-// Bulb glow light (off by default)
-const bulbLight = new THREE.PointLight(0xffdd66, 0, 12);
-bulbLight.position.set(0, 0, 0);
-bulbGroup.add(bulbLight);
-
-// Bloom-like glow sphere (outer aura)
-const bloomGlowMat = new THREE.MeshBasicMaterial({
-  color: 0xffdd66, transparent: true, opacity: 0,
-  side: THREE.DoubleSide, depthWrite: false
-});
-const bloomGlow = new THREE.Mesh(new THREE.SphereGeometry(1.2, 16, 16), bloomGlowMat);
-bloomGlow.name = '_glow';
-bulbGroup.add(bloomGlow);
-
-// Secondary larger glow
-const bloomGlow2Mat = new THREE.MeshBasicMaterial({
-  color: 0xffeeaa, transparent: true, opacity: 0,
-  side: THREE.DoubleSide, depthWrite: false
-});
-const bloomGlow2 = new THREE.Mesh(new THREE.SphereGeometry(2.0, 12, 12), bloomGlow2Mat);
-bloomGlow2.name = '_glow';
-bulbGroup.add(bloomGlow2);
-
-model.add(bulbGroup);
-
-// ═══════════════════════════════════════════════════
-//  GAS INLETS (adsorbed on Pt electrode surfaces, inside solution)
-// ═══════════════════════════════════════════════════
-const inletGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.8, 12);
-const inletMatL = new THREE.MeshStandardMaterial({
-  color: 0x5cb85c, transparent: true, opacity: 0.3,
-  metalness: 0.3, roughness: 0.4
-});
-const inletL = new THREE.Mesh(inletGeo, inletMatL);
-inletL.position.set(-2.2, 2.5, 0);
-inletL.name = 'reactant';
-model.add(inletL);
-
-const inletR = new THREE.Mesh(inletGeo.clone(), inletMatL.clone());
-inletR.position.set(2.2, 2.5, 0);
-inletR.name = 'reactant';
-model.add(inletR);
+// NO gas inlet tubes (removed)
+// NO bulb (removed)
 
 scene.add(model);
 
@@ -477,22 +408,25 @@ function mkLabel(text, pos, color, extraClass) {
   return l;
 }
 
-mkLabel('负极 (Pt)', new THREE.Vector3(-2.2, 2, 2.2), '#5cc4c4');
-mkLabel('正极 (Pt)', new THREE.Vector3(2.2, 2, 2.2), '#5cc4c4');
-mkLabel('H₂', new THREE.Vector3(-2.2, 4, 0), '#5cb85c');
-mkLabel('O₂', new THREE.Vector3(2.2, 4, 0), '#5cb85c');
+mkLabel('负极 (Fe)', new THREE.Vector3(-2.2, 2, 2.2), '#5cc4c4');
+mkLabel('正极 (Cu)', new THREE.Vector3(2.2, 2, 2.2), '#5cc4c4');
 mkLabel('稀硫酸', new THREE.Vector3(0, 1.5, 2.2), '#9b7ed8');
-mkLabel('导线', new THREE.Vector3(1.8, 9.5, 0), '#c9a84c');
-mkLabel('马达', new THREE.Vector3(0, 11.8, 0), '#ffdd66');
+mkLabel('导线', new THREE.Vector3(0, 9.5, 0), '#c9a84c');
 
-const titleLabel = mkLabel('氢氧燃料电池', new THREE.Vector3(0, -1, 0), '#5cc4c4');
+const titleLabel = mkLabel('铁-铜原电池', new THREE.Vector3(0, -1, 0), '#5cc4c4');
 titleLabel.element.className = 'label-3d title';
 
 // Ion labels (follow ion groups, created as CSS2D objects)
 const hIonLabel = mkLabel('H\u207A', new THREE.Vector3(0, 2, 0), '#ff4466', 'ion-label ion-h');
 const sIonLabel = mkLabel('SO\u2084\u00B2\u207B', new THREE.Vector3(0, 1.2, 0), '#4466ff', 'ion-label ion-s');
+const feIonLabel = mkLabel('Fe\u00B2\u207A', new THREE.Vector3(-1.5, 2.5, 0), '#44cc44', 'ion-label ion-fe');
 hIonLabel.visible = false;
 sIonLabel.visible = false;
+feIonLabel.visible = false;
+
+// H2 label near right electrode top (visible when particles on)
+const lblH2 = mkLabel('H\u2082', new THREE.Vector3(2.2, 4, 0), '#66ff88');
+lblH2.visible = false;
 
 // ═══════════════════════════════════════════════════
 //  PREMIUM LIGHTING — 3-point + accents
@@ -539,15 +473,14 @@ accentPurple.position.set(5, 1, 5);
 scene.add(accentPurple);
 
 // ═══════════════════════════════════════════════════
-//  PARTICLES — Electrons, Ions, Gas Bubbles
+//  PARTICLES — Electrons, Ions, Fe²⁺, H₂ Bubbles
 // ═══════════════════════════════════════════════════
 let particlesOn = false;
 
-// --- Electron particles along wire ---
+// --- Electron particles along wire (LEFT to RIGHT, Fe→Cu) ---
 const eParticles = [];
 const electronCount = 18;
 for (let i = 0; i < electronCount; i++) {
-  // Main sphere
   const eMat = new THREE.MeshBasicMaterial({
     color: 0xffcc44, transparent: true, opacity: 0.9
   });
@@ -572,8 +505,8 @@ for (let i = 0; i < electronCount; i++) {
 
 // --- Ion particles in solution ---
 const iParticles = [];
-const hIonCount = 10; // H+ ions: RED, move LEFT->RIGHT (toward 正极)
-const sIonCount = 7;  // SO4^2- ions: BLUE, move RIGHT->LEFT (toward 负极)
+const hIonCount = 10; // H+ ions: RED, move LEFT->RIGHT (toward Cu/正极)
+const sIonCount = 7;  // SO4^2- ions: BLUE, move RIGHT->LEFT (toward Fe/负极)
 
 // H+ ions (red/pink, small, move left to right)
 for (let i = 0; i < hIonCount; i++) {
@@ -590,9 +523,9 @@ for (let i = 0; i < hIonCount; i++) {
   m.add(new THREE.Mesh(new THREE.SphereGeometry(0.16, 6, 6), gMat));
 
   m.userData = {
-    t: Math.random(), // 0..1 maps x from -3 to 3
+    t: Math.random(),
     speed: 0.001 + Math.random() * 0.0008, // positive = left to right
-    y: 0.5 + Math.random() * 2.8, // within solution (0.3 - 3.5)
+    y: 0.5 + Math.random() * 2.8,
     z: (Math.random() - 0.5) * 1.4,
     isH: true
   };
@@ -616,8 +549,8 @@ for (let i = 0; i < sIonCount; i++) {
   m.add(new THREE.Mesh(new THREE.SphereGeometry(0.24, 6, 6), gMat));
 
   m.userData = {
-    t: 0.35 + Math.random() * 0.3, // start from CENTER of solution (0.35-0.65), not from right electrode
-    speed: -(0.0006 + Math.random() * 0.0005), // negative = move toward left (负极)
+    t: 0.35 + Math.random() * 0.3,
+    speed: -(0.0006 + Math.random() * 0.0005), // negative = move toward left (Fe/负极)
     y: 0.5 + Math.random() * 2.8,
     z: (Math.random() - 0.5) * 1.4,
     isH: false
@@ -627,7 +560,35 @@ for (let i = 0; i < sIonCount; i++) {
   iParticles.push(m);
 }
 
-// --- H2 Gas bubbles (green-tinted, rising from LEFT electrode only) ---
+// --- Fe²⁺ ions (green, emanate from Fe electrode into solution) ---
+const feIonParticles = [];
+const feIonCount = 8;
+for (let i = 0; i < feIonCount; i++) {
+  const mat = new THREE.MeshBasicMaterial({
+    color: 0x44cc44, transparent: true, opacity: 0.85
+  });
+  const m = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), mat);
+
+  // Glow
+  const gMat = new THREE.MeshBasicMaterial({
+    color: 0x44cc44, transparent: true, opacity: 0.2,
+    depthWrite: false
+  });
+  m.add(new THREE.Mesh(new THREE.SphereGeometry(0.2, 6, 6), gMat));
+
+  m.userData = {
+    t: Math.random(), // 0..1 maps drift from electrode surface into solution
+    speed: 0.001 + Math.random() * 0.001,
+    y: 0.8 + Math.random() * 2.2, // within solution
+    z: (Math.random() - 0.5) * 1.0,
+    phase: Math.random() * Math.PI * 2
+  };
+  m.visible = false;
+  scene.add(m);
+  feIonParticles.push(m);
+}
+
+// --- H₂ Gas bubbles (green-tinted, rising from RIGHT electrode / Cu) ---
 const bubbles = [];
 for (let i = 0; i < 12; i++) {
   const radius = 0.03 + Math.random() * 0.05;
@@ -637,7 +598,7 @@ for (let i = 0; i < 12; i++) {
   });
   const b = new THREE.Mesh(bGeo, bMat);
   b.userData = {
-    baseX: -2.2 + (Math.random() - 0.5) * 0.5,
+    baseX: 2.2 + (Math.random() - 0.5) * 0.5, // RIGHT electrode (Cu)
     baseZ: (Math.random() - 0.5) * 1.0,
     speed: 0.006 + Math.random() * 0.01,
     offset: Math.random() * 10,
@@ -648,34 +609,11 @@ for (let i = 0; i < 12; i++) {
   bubbles.push(b);
 }
 
-// --- Water molecules (H2O) appearing near positive electrode when particles active ---
-const waterMolecules = [];
-for (let i = 0; i < 5; i++) {
-  // H2O as a small cyan/white sphere
-  const wMat = new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.7 });
-  const w = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), wMat);
-  // Glow
-  const wGlow = new THREE.MeshBasicMaterial({ color: 0x66ccff, transparent: true, opacity: 0.15, depthWrite: false });
-  w.add(new THREE.Mesh(new THREE.SphereGeometry(0.18, 6, 6), wGlow));
-  w.userData = {
-    baseY: 1 + Math.random() * 2,
-    phase: Math.random() * Math.PI * 2,
-    driftSpeed: 0.003 + Math.random() * 0.003
-  };
-  w.position.set(2.2 + (Math.random() - 0.5) * 0.8, w.userData.baseY, (Math.random() - 0.5) * 1);
-  w.visible = false;
-  scene.add(w);
-  waterMolecules.push(w);
-}
-// H2O label
-const lblH2O = mkLabel('H₂O', new THREE.Vector3(1.8, 2.5, 0), '#66ccff');
-lblH2O.visible = false;
-
 // ═══════════════════════════════════════════════════
 //  PARTICLE UPDATE
 // ═══════════════════════════════════════════════════
 function updateParticles(time) {
-  // Gas bubbles always animate (H2 from left electrode in solution)
+  // Gas bubbles always animate (H2 from RIGHT electrode in solution)
   bubbles.forEach(b => {
     b.userData.y += b.userData.speed;
     // Reset when reaching solution surface
@@ -691,7 +629,7 @@ function updateParticles(time) {
 
   if (!particlesOn) return;
 
-  // Electron particles along wire curve
+  // Electron particles along wire curve (LEFT to RIGHT)
   eParticles.forEach(p => {
     p.visible = true;
     p.userData.t += p.userData.speed;
@@ -736,39 +674,33 @@ function updateParticles(time) {
     sIonLabel.position.set(sCenterX / sCount, solBottom + 0.3, 0);
   }
 
-  // Water molecules drift near positive electrode
-  waterMolecules.forEach(w => {
-    w.visible = true;
-    w.position.y = w.userData.baseY + Math.sin(time * 0.8 + w.userData.phase) * 0.3;
-    w.position.x = 2.2 + Math.sin(time * 0.5 + w.userData.phase) * 0.4;
-    w.position.z += Math.sin(time + w.userData.phase) * 0.001;
+  // Fe²⁺ ions: emanate from Fe electrode surface into solution
+  let feCenterX = 0, feCount = 0;
+  feIonParticles.forEach(p => {
+    p.visible = true;
+    p.userData.t += p.userData.speed;
+    if (p.userData.t > 1) p.userData.t = 0; // reset to electrode surface
+
+    // x drifts from -2.2 (Fe surface) rightward into solution
+    const x = -2.2 + p.userData.t * 2.5; // drift up to ~0.3
+    const y = p.userData.y + Math.sin(time * 1.2 + p.userData.phase) * 0.15;
+    const z = p.userData.z + Math.cos(time * 0.8 + p.userData.phase) * 0.1;
+    p.position.set(x, y, z);
+
+    // Fade out as they drift further from electrode
+    p.material.opacity = 0.85 * (1 - p.userData.t * 0.6);
+
+    feCenterX += x;
+    feCount++;
   });
-  lblH2O.visible = true;
-}
 
-// ═══════════════════════════════════════════════════
-//  BULB GLOW CONTROL
-// ═══════════════════════════════════════════════════
-let bulbGlowing = false;
+  // Update Fe²⁺ label position
+  if (feCount > 0) {
+    feIonLabel.position.set(feCenterX / feCount, solTop + 0.3, 0);
+  }
 
-function setBulbGlow(on) {
-  bulbGlowing = on;
-  // Point light
-  bulbLight.intensity = on ? 5 : 0;
-  bulbLight.color.set(on ? 0xffdd66 : 0xffdd66);
-
-  // Filament
-  matFilament.emissive.set(on ? 0xffcc44 : 0x443311);
-  matFilament.emissiveIntensity = on ? 2.0 : 0.3;
-
-  // Bulb glass
-  matBulbGlass.opacity = on ? 0.22 : 0.08;
-  matBulbGlass.emissive = new THREE.Color(on ? 0xffdd66 : 0x000000);
-  matBulbGlass.emissiveIntensity = on ? 0.5 : 0;
-
-  // Bloom glow spheres
-  bloomGlowMat.opacity = on ? 0.08 : 0;
-  bloomGlow2Mat.opacity = on ? 0.03 : 0;
+  // Show H₂ label when particles are on
+  lblH2.visible = true;
 }
 
 // ═══════════════════════════════════════════════════
@@ -800,7 +732,7 @@ const overviewCam = { pos: new THREE.Vector3(0, 4, 22), look: new THREE.Vector3(
 const views = {
   electrode: { pos: new THREE.Vector3(-4, 4, 7), look: new THREE.Vector3(-2.2, 3, 0) },
   reactant: { pos: new THREE.Vector3(-3, 8, 6), look: new THREE.Vector3(0, 6, 0) },
-  econductor: { pos: new THREE.Vector3(3, 11, 9), look: new THREE.Vector3(0, 9.5, 0) },
+  econductor: { pos: new THREE.Vector3(3, 9, 9), look: new THREE.Vector3(0, 8, 0) },
   iconductor: { pos: new THREE.Vector3(0, 2, 10), look: new THREE.Vector3(0, 2, 0) },
 };
 
@@ -829,15 +761,16 @@ function updateCamAnim() {
 //  HIGHLIGHT MODES
 // ═══════════════════════════════════════════════════
 function clearHi() {
-  [elecL, elecR].forEach(e => e.material = matElectrode);
+  elecL.material = matElectrodeFe;
+  elecR.material = matElectrodeCu;
   solution.material = matSolution;
   surface.material = surfMat;
   wire.material = matWire;
-  setBulbGlow(false);
 }
 
 function hiElectrode() {
-  [elecL, elecR].forEach(e => e.material = matElectrodeHi);
+  elecL.material = matElectrodeFeHi;
+  elecR.material = matElectrodeCuHi;
 }
 
 function hiSolution() {
@@ -846,7 +779,6 @@ function hiSolution() {
 
 function hiWire() {
   wire.material = matWireHi;
-  setBulbGlow(true);
 }
 
 // ═══════════════════════════════════════════════════
@@ -952,18 +884,18 @@ function toggleParticles() {
   document.getElementById('btnParticle').textContent = particlesOn ? '停止粒子' : '启动粒子';
 
   if (particlesOn) {
-    setBulbGlow(true);
     hIonLabel.visible = true;
     sIonLabel.visible = true;
+    feIonLabel.visible = true;
   }
   if (!particlesOn) {
     eParticles.forEach(p => p.visible = false);
     iParticles.forEach(p => p.visible = false);
-    waterMolecules.forEach(w => w.visible = false);
-    lblH2O.visible = false;
+    feIonParticles.forEach(p => p.visible = false);
+    lblH2.visible = false;
     hIonLabel.visible = false;
     sIonLabel.visible = false;
-    if (step !== 3) setBulbGlow(false);
+    feIonLabel.visible = false;
   }
 }
 
@@ -986,14 +918,6 @@ function animate() {
 
   // Subtle solution surface wave
   surface.position.y = solTop + Math.sin(t * 0.8) * 0.02;
-
-  // Bulb glow pulsation when active
-  if (bulbGlowing) {
-    const pulse = 0.85 + Math.sin(t * 3) * 0.15;
-    bulbLight.intensity = 5 * pulse;
-    bloomGlowMat.opacity = 0.08 * pulse;
-    bloomGlow2Mat.opacity = 0.03 * pulse;
-  }
 
   renderer.render(scene, camera);
   labelRenderer.render(scene, camera);

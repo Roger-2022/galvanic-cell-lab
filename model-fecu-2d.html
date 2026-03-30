@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>微观模型讲解（2D） — 原电池探究平台</title>
+<title>铁-铜原电池 微观模型（2D） — 原电池探究平台</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
@@ -78,7 +78,7 @@
   <div class="topbar">
     <div class="topbar-left">
       <a href="/" class="back-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</a>
-      <div class="topbar-title">微观模型讲解</div>
+      <div class="topbar-title">铁-铜原电池 微观模型</div>
       <div class="topbar-badge">2D 视图</div>
     </div>
     <div class="topbar-controls">
@@ -97,11 +97,6 @@
             <stop offset="0%" stop-color="#9b7ed8" stop-opacity="0.12"/>
             <stop offset="100%" stop-color="#9b7ed8" stop-opacity="0.32"/>
           </linearGradient>
-          <radialGradient id="bulbGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#ffe066" stop-opacity="0"/>
-            <stop offset="50%" stop-color="#ffe066" stop-opacity="0"/>
-            <stop offset="100%" stop-color="#ffe066" stop-opacity="0"/>
-          </radialGradient>
           <filter id="glowFilter">
             <feGaussianBlur stdDeviation="3" result="blur"/>
             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -113,35 +108,25 @@
         <rect x="153" y="255" width="414" height="222" rx="5" fill="url(#gS)"/>
         <!-- Liquid surface line -->
         <line x1="153" y1="255" x2="567" y2="255" stroke="#9b7ed8" stroke-width="1" opacity="0.4" stroke-dasharray="4,4"/>
-        <!-- Left electrode (负极) -->
-        <rect x="230" y="110" width="18" height="320" rx="3" fill="rgba(92,196,196,0.2)" stroke="#5cc4c4" stroke-width="1.5"/>
-        <text x="239" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Pt电极</text>
-        <text x="239" y="86" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11">负极</text>
-        <!-- Right electrode (正极) -->
-        <rect x="472" y="110" width="18" height="320" rx="3" fill="rgba(92,196,196,0.2)" stroke="#5cc4c4" stroke-width="1.5"/>
-        <text x="481" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Pt电极</text>
-        <text x="481" y="86" text-anchor="middle" fill="rgba(255,255,255,0.5)" font-size="11">正极</text>
-        <!-- Gas labels -->
-        <text x="210" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">H₂</text>
-        <text x="510" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">O₂</text>
-        <!-- Wire: left electrode to bulb -->
-        <path d="M239 110 L239 55 Q239 35 259 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
-        <!-- Wire: right electrode to bulb -->
-        <path d="M481 110 L481 55 Q481 35 461 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
-        <!-- Bulb outer glow (animated) -->
-        <circle cx="360" cy="35" r="28" id="bGlow" fill="url(#bulbGlow)" opacity="0"/>
-        <!-- Light cone below bulb (animated) -->
-        <polygon id="bCone" points="348,50 372,50 390,90 330,90" fill="rgba(255,220,100,0)" opacity="0"/>
-        <!-- Bulb body -->
-        <circle cx="360" cy="35" r="16" fill="rgba(255,220,100,0.03)" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" id="bC"/>
-        <!-- Filament -->
-        <path d="M354 29 Q357 23 360 29 Q363 23 366 29" fill="none" stroke="rgba(255,220,100,0.3)" stroke-width="1.5" id="bF"/>
-        <!-- Bulb label -->
-        <text x="360" y="64" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">马达</text>
+        <!-- Left electrode (负极 Fe) — brown color -->
+        <rect x="230" y="110" width="18" height="320" rx="3" fill="rgba(139,69,19,0.35)" stroke="#8B4513" stroke-width="1.5"/>
+        <text x="239" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Fe电极</text>
+        <text x="239" y="86" text-anchor="middle" fill="#5cc4c4" font-size="11">负极</text>
+        <!-- Right electrode (正极 Cu) — copper-orange color -->
+        <rect x="472" y="110" width="18" height="320" rx="3" fill="rgba(184,115,51,0.35)" stroke="#B87333" stroke-width="1.5"/>
+        <text x="481" y="100" text-anchor="middle" fill="#5cc4c4" font-size="13" font-weight="500">Cu电极</text>
+        <text x="481" y="86" text-anchor="middle" fill="#5cc4c4" font-size="11">正极</text>
+        <!-- New labels in solution -->
+        <text x="210" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">Fe²⁺</text>
+        <text x="510" y="240" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">H₂</text>
+        <!-- Wire: left electrode to right electrode (smooth arc, no bulb) -->
+        <path d="M239 110 L239 55 Q239 30 280 30 L360 25 Q440 30 481 30 L481 55 L481 110" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <!-- Wire label -->
+        <text x="360" y="18" text-anchor="middle" fill="rgba(255,255,255,0.45)" font-size="11">导线</text>
         <!-- Electron direction arrows (shown when animated) -->
         <g id="eA" opacity="0">
-          <text x="280" y="28" fill="#c9a84c" font-size="10">e⁻ →</text>
-          <text x="420" y="28" fill="#c9a84c" font-size="10">→ e⁻</text>
+          <text x="280" y="22" fill="#c9a84c" font-size="10">e⁻ →</text>
+          <text x="420" y="22" fill="#c9a84c" font-size="10">→ e⁻</text>
         </g>
         <!-- Static ion labels in solution -->
         <g opacity="0.4">
@@ -154,15 +139,15 @@
         </g>
         <!-- Solution label -->
         <text x="360" y="498" text-anchor="middle" fill="#9b7ed8" font-size="13" opacity="0.7">稀硫酸</text>
-        <text x="360" y="528" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="11">氢氧燃料电池装置示意图</text>
+        <text x="360" y="528" text-anchor="middle" fill="rgba(255,255,255,0.3)" font-size="11">铁-铜原电池装置示意图</text>
       </svg>
-      <!-- Hotspots with repositioned labels to avoid overlap -->
-      <div class="hotspot h-e pulse hs-elec-left" style="left:207px;top:82px;width:62px;height:345px" data-label="电极材料" onclick="show('electrode')"></div>
-      <div class="hotspot h-e pulse hs-elec-right" style="left:451px;top:82px;width:62px;height:345px" data-label="电极材料" onclick="show('electrode')"></div>
-      <div class="hotspot h-r pulse hs-react-left" style="left:210px;top:140px;width:58px;height:50px" data-label="电极反应物" onclick="show('reactant')"></div>
-      <div class="hotspot h-r pulse hs-react-right" style="left:452px;top:140px;width:58px;height:50px" data-label="电极反应物" onclick="show('reactant')"></div>
-      <div class="hotspot h-w pulse hs-wire" style="left:220px;top:8px;width:280px;height:56px" data-label="电子导体" onclick="show('econductor')"></div>
-      <div class="hotspot h-s pulse hs-sol" style="left:150px;top:430px;width:420px;height:50px" data-label="离子导体" onclick="show('iconductor')"></div>
+      <!-- Hotspots -->
+      <div class="hotspot h-e pulse hs-elec-left" style="left:207px;top:82px;width:62px;height:345px" data-label="Fe电极（负极）" onclick="show('electrode')"></div>
+      <div class="hotspot h-e pulse hs-elec-right" style="left:451px;top:82px;width:62px;height:345px" data-label="Cu电极（正极）" onclick="show('electrode')"></div>
+      <div class="hotspot h-r pulse hs-react-left" style="left:210px;top:140px;width:58px;height:50px" data-label="Fe → Fe²⁺" onclick="show('reactant')"></div>
+      <div class="hotspot h-r pulse hs-react-right" style="left:452px;top:140px;width:58px;height:50px" data-label="H⁺ → H₂" onclick="show('reactant')"></div>
+      <div class="hotspot h-w pulse hs-wire" style="left:220px;top:8px;width:280px;height:56px" data-label="导线" onclick="show('econductor')"></div>
+      <div class="hotspot h-s pulse hs-sol" style="left:150px;top:430px;width:420px;height:50px" data-label="稀硫酸" onclick="show('iconductor')"></div>
       <canvas id="eCanvas"></canvas>
     </div>
     <div class="step-nav">
@@ -173,7 +158,7 @@
       <div class="sd" onclick="goToStep(4)"></div>
       <span style="font-size:.7rem;color:var(--text-dim);margin-left:.4rem" id="sL">0 / 4</span>
     </div>
-    <a href="/model" class="sw">切换 3D 视图</a>
+    <a href="/model-fecu" class="sw">切换 3D 视图</a>
   </div>
   <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="查看详情">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="17" y2="7"/><line x1="9" y1="11" x2="17" y2="11"/><line x1="9" y1="15" x2="13" y2="15"/></svg>
@@ -182,17 +167,17 @@
     <button class="sidebar-close" onclick="toggleSidebar()" title="关闭">&times;</button>
     <div class="panel-placeholder" id="pp" style="align-items:stretch;justify-content:flex-start;overflow-y:auto;gap:.8rem">
       <div style="text-align:center;padding-top:.3rem">
-        <div style="font-family:'Noto Serif SC',serif;font-size:1.05rem;font-weight:600;margin-bottom:.3rem">原电池四大构成要素</div>
-        <p style="font-size:.75rem;color:rgba(255,255,255,0.4);line-height:1.5">以氢氧燃料电池为例，点击高亮区域逐步探究</p>
+        <div style="font-family:'Noto Serif SC',serif;font-size:1.05rem;font-weight:600;margin-bottom:.3rem">铁-铜原电池 四大构成要素</div>
+        <p style="font-size:.75rem;color:rgba(255,255,255,0.4);line-height:1.5">以铁-铜原电池为例，点击高亮区域逐步探究</p>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
         <div style="background:rgba(92,196,196,0.05);border:1px solid rgba(92,196,196,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('electrode')">
           <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#5cc4c4"></div><span style="font-size:.78rem;font-weight:600;color:#5cc4c4">电极材料</span></div>
-          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">导电场所（Pt/石墨）</p>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">Fe负极 / Cu正极</p>
         </div>
         <div style="background:rgba(92,184,92,0.05);border:1px solid rgba(92,184,92,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('reactant')">
           <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#5cb85c"></div><span style="font-size:.78rem;font-weight:600;color:#5cb85c">电极反应物</span></div>
-          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">H₂（还原剂）O₂（氧化剂）</p>
+          <p style="font-size:.68rem;color:rgba(255,255,255,0.45);line-height:1.4">Fe（还原剂）H⁺（氧化剂）</p>
         </div>
         <div style="background:rgba(201,168,76,0.05);border:1px solid rgba(201,168,76,0.12);border-radius:8px;padding:.6rem;cursor:pointer" onclick="show('econductor')">
           <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem"><div style="width:7px;height:7px;border-radius:50%;background:#c9a84c"></div><span style="font-size:.78rem;font-weight:600;color:#c9a84c">电子导体</span></div>
@@ -204,41 +189,39 @@
         </div>
       </div>
       <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:.6rem">
-        <div style="font-size:.65rem;color:rgba(255,255,255,0.25);margin-bottom:.3rem">原电池 vs 燃烧</div>
-        <p style="font-size:.7rem;color:rgba(255,255,255,0.45);line-height:1.5"><span style="color:#5cb85c">燃烧</span>：直接接触→热能 &nbsp; <span style="color:#5cc4c4">原电池</span>：分区进行→电能</p>
+        <div style="font-size:.65rem;color:rgba(255,255,255,0.25);margin-bottom:.3rem">铁-铜原电池原理</div>
+        <p style="font-size:.7rem;color:rgba(255,255,255,0.45);line-height:1.5"><span style="color:#8B4513">Fe</span>（活泼）做负极失电子 &nbsp; <span style="color:#B87333">Cu</span>（不活泼）做正极得电子</p>
       </div>
     </div>
     <div class="detail-content" id="detail-electrode">
       <div class="detail-header"><div class="detail-dot" style="background:var(--cyan)"></div><div class="detail-title">电极材料</div></div>
       <div class="ds"><div class="ds-l">定义</div><p>电极材料是<span class="hl">容纳电极反应发生的场所</span>，为反应物提供得失电子的界面。</p></div>
-      <div class="ds"><div class="ds-l">本装置</div><p>使用两个<span class="hl">铂（Pt）电极</span>。铂具有优良的导电性和化学稳定性，能吸附气体分子并催化电极反应。</p></div>
-      <div class="ds"><div class="ds-l">核心要求</div><p>电极材料的基本要求是<span class="hl">能够导电</span>。石墨虽非金属，也可作电极材料。</p></div>
-      <div class="ds"><div class="ds-l">关键理解</div><p>Pt电极<span class="hl">本身不参加化学反应</span>，仅提供反应场所。</p></div>
-      <div class="dk"><span>导电性</span><span>催化作用</span><span>反应场所</span><span>Pt / 石墨</span></div>
+      <div class="ds"><div class="ds-l">本装置</div><p>使用<span class="hl">铁（Fe）做负极</span>，<span class="hl">铜（Cu）做正极</span>。Fe比Cu活泼，更容易失去电子。</p></div>
+      <div class="ds"><div class="ds-l">核心要求</div><p>需要<span class="hl">两种活泼性不同的导体</span>作为电极，活泼性差异是产生电流的根本原因。</p></div>
+      <div class="ds"><div class="ds-l">关键理解</div><p><span class="hl">Fe比Cu活泼，Fe会优先失去电子</span>，因此Fe做负极，Cu做正极。</p></div>
+      <div class="dk"><span>活泼性差异</span><span>Fe负极</span><span>Cu正极</span><span>导电性</span></div>
     </div>
     <div class="detail-content" id="detail-reactant">
       <div class="detail-header"><div class="detail-dot" style="background:var(--green)"></div><div class="detail-title">电极反应物</div></div>
       <div class="ds"><div class="ds-l">定义</div><p>参与<span class="hl" style="color:var(--green)">氧化还原反应</span>的物质——还原剂（失电子）和氧化剂（得电子）。</p></div>
-      <div class="ds"><div class="ds-l">负极反应</div><p><span class="hl" style="color:var(--green)">H₂</span>在负极失去电子：</p><div class="df">H₂ - 2e⁻ → 2H⁺</div></div>
-      <div class="ds"><div class="ds-l">正极反应</div><p><span class="hl" style="color:var(--green)">O₂</span>在正极得到电子：</p><div class="df">O₂ + 4e⁻ + 4H⁺ → 2H₂O</div></div>
-      <div class="ds"><div class="ds-l">总反应</div><div class="df">2H₂ + O₂ → 2H₂O</div><p style="margin-top:.5rem;font-size:.8rem">与燃烧相同，但<span class="hl" style="color:var(--green)">不需要点燃</span>。</p></div>
-      <div class="dk"><span>还原剂 H₂</span><span>氧化剂 O₂</span><span>氧化还原反应</span></div>
+      <div class="ds"><div class="ds-l">负极反应</div><p><span class="hl" style="color:var(--green)">Fe</span>在负极失去电子（氧化反应）：</p><div class="df">Fe − 2e⁻ = Fe²⁺</div></div>
+      <div class="ds"><div class="ds-l">正极反应</div><p><span class="hl" style="color:var(--green)">H⁺</span>在正极得到电子（还原反应）：</p><div class="df">2H⁺ + 2e⁻ = H₂↑</div></div>
+      <div class="ds"><div class="ds-l">总反应</div><div class="df">Fe + 2H⁺ = Fe²⁺ + H₂↑</div><p style="margin-top:.5rem;font-size:.8rem">Fe失去电子变为Fe²⁺进入溶液，H⁺在Cu表面<span class="hl" style="color:var(--green)">得到电子生成H₂</span>。</p></div>
+      <div class="dk"><span>Fe失电子</span><span>H⁺得电子</span><span>氧化还原</span></div>
     </div>
     <div class="detail-content" id="detail-econductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--gold)"></div><div class="detail-title">电子导体</div></div>
       <div class="ds"><div class="ds-l">定义</div><p>即<span class="hl" style="color:var(--gold)">导线</span>，构成外电路，使电子从负极定向移动到正极。</p></div>
-      <div class="ds"><div class="ds-l">工作原理</div><p>H₂失去电子后，电子沿导线经过马达流向正极。<span class="hl" style="color:var(--gold)">定向移动</span>产生电流，马达转动。</p></div>
-      <div class="ds"><div class="ds-l">与燃烧的区别</div><p>燃烧时H₂与O₂直接接触——<span class="hl" style="color:var(--gold)">无定向移动，不产生电流</span>。原电池将反应分区进行。</p></div>
-      <div class="ds"><div class="ds-l">关键</div><p>电路必须<span class="hl" style="color:var(--gold)">闭合</span>。</p></div>
+      <div class="ds"><div class="ds-l">工作原理</div><p>电子从<span class="hl" style="color:var(--gold)">Fe（负极）</span>沿导线流向<span class="hl" style="color:var(--gold)">Cu（正极）</span>。电子的<span class="hl" style="color:var(--gold)">定向移动</span>产生电流。</p></div>
+      <div class="ds"><div class="ds-l">关键</div><p>电路必须<span class="hl" style="color:var(--gold)">闭合</span>，电子才能持续流动，电流方向与电子运动方向相反。</p></div>
       <div class="dk"><span>导线</span><span>外电路</span><span>定向移动</span><span>闭合回路</span></div>
     </div>
     <div class="detail-content" id="detail-iconductor">
       <div class="detail-header"><div class="detail-dot" style="background:var(--purple)"></div><div class="detail-title">离子导体</div></div>
       <div class="ds"><div class="ds-l">定义</div><p>即<span class="hl" style="color:var(--purple)">电解质溶液</span>，构成内电路，离子定向迁移传导电荷。</p></div>
-      <div class="ds"><div class="ds-l">本装置</div><p>使用<span class="hl" style="color:var(--purple)">稀硫酸</span>。H⁺向正极迁移，SO₄²⁻向负极迁移。</p></div>
-      <div class="ds"><div class="ds-l">为什么不能用纯水？</div><p>纯水几乎不含自由离子，相当于<span class="hl" style="color:var(--purple)">断路</span>。</p></div>
-      <div class="ds"><div class="ds-l">替代方案</div><p>NaOH可以，无水乙醇<span class="hl" style="color:var(--purple)">不可以</span>（非电解质）。</p></div>
-      <div class="dk"><span>电解质溶液</span><span>内电路</span><span>离子迁移</span><span>H₂SO₄</span></div>
+      <div class="ds"><div class="ds-l">本装置</div><p>使用<span class="hl" style="color:var(--purple)">稀硫酸（H₂SO₄）</span>。</p></div>
+      <div class="ds"><div class="ds-l">离子迁移</div><p><span class="hl" style="color:var(--purple)">H⁺向正极（Cu）迁移</span>，在Cu表面得电子生成H₂；<span class="hl" style="color:var(--purple)">SO₄²⁻向负极（Fe）迁移</span>。</p></div>
+      <div class="dk"><span>电解质溶液</span><span>内电路</span><span>离子迁移</span></div>
     </div>
   </div>
 </div>
@@ -261,16 +244,14 @@ function rc() {
 rc();
 window.addEventListener('resize', () => { rc(); if (an) { createAllParticles(); } });
 
-// ─── Wire path (electron flow: left electrode → up → along wire → through bulb → down to right electrode) ───
+// ─── Wire path (electron flow: left electrode → up → along wire arc → down to right electrode) ───
 function getWirePath() {
   return [
     {x: 239*sx, y: 110*sy},
     {x: 239*sx, y: 55*sy},
-    {x: 259*sx, y: 35*sy},
-    {x: 310*sx, y: 35*sy},
-    {x: 360*sx, y: 35*sy},
-    {x: 410*sx, y: 35*sy},
-    {x: 461*sx, y: 35*sy},
+    {x: 280*sx, y: 30*sy},
+    {x: 360*sx, y: 25*sy},
+    {x: 440*sx, y: 30*sy},
     {x: 481*sx, y: 55*sy},
     {x: 481*sx, y: 110*sy}
   ];
@@ -360,7 +341,7 @@ class IonParticle {
     const ty = 270 * sy, by = 450 * sy;
     const midY = ty + (by - ty) * (0.3 + Math.random() * 0.4);
     if (this.type === 'h') {
-      // H+ moves left → right (负极 to 正极)
+      // H+ moves left → right (toward Cu正极)
       return [
         {x: lx, y: midY},
         {x: lx + (rx - lx) * 0.25, y: midY + (Math.random() - 0.5) * 30 * sy},
@@ -369,7 +350,7 @@ class IonParticle {
         {x: rx, y: midY}
       ];
     } else {
-      // SO4 2- originates from solution center, moves left toward 负极
+      // SO4 2- originates from solution center, moves left toward Fe负极
       const cx = lx + (rx - lx) * 0.5;
       return [
         {x: cx + (Math.random() - 0.5) * 30 * sx, y: midY},
@@ -441,63 +422,31 @@ class IonParticle {
   }
 }
 
-// Bubble particle (H2 rising from left electrode, O2 absorbed at right electrode)
+// H2 Bubble particle (rising from Cu right electrode)
 class BubbleParticle {
-  constructor(type) {
-    this.type = type; // 'h2' or 'o2'
+  constructor() {
     this.reset();
   }
   reset() {
-    if (this.type === 'h2') {
-      // H2 bubbles rise from left electrode surface
-      this.x = (225 + Math.random() * 28) * sx;
-      this.startY = (250 + Math.random() * 40) * sy;
-      this.y = this.startY;
-      this.targetY = (180 + Math.random() * 40) * sy;
-      this.size = (2 + Math.random() * 3) * sx;
-      this.color = [100, 200, 120]; // green-tinted
-      this.speed = (0.3 + Math.random() * 0.4) * sy;
-    } else if (this.type === 'o2') {
-      // O2 particles move toward right electrode
-      this.x = (495 + Math.random() * 40) * sx;
-      this.startY = (180 + Math.random() * 60) * sy;
-      this.y = this.startY;
-      this.targetX = (480 + Math.random() * 10) * sx;
-      this.size = (1.5 + Math.random() * 2.5) * sx;
-      this.color = [100, 150, 230]; // blue-tinted
-      this.speed = (0.15 + Math.random() * 0.25) * sx;
-    } else if (this.type === 'h2o') {
-      // H2O water molecules drift near positive electrode
-      this.x = (460 + Math.random() * 30) * sx;
-      this.y = (290 + Math.random() * 120) * sy;
-      this.size = (2.5 + Math.random() * 2) * sx;
-      this.color = [100, 200, 255]; // cyan
-      this.speed = 0;
-      this.label = true;
-    }
+    // H2 bubbles rise from right electrode (Cu) surface
+    this.x = (472 + Math.random() * 18) * sx;
+    this.startY = (250 + Math.random() * 40) * sy;
+    this.y = this.startY;
+    this.targetY = (180 + Math.random() * 40) * sy;
+    this.size = (2 + Math.random() * 3) * sx;
+    this.color = [100, 200, 120]; // green-tinted
+    this.speed = (0.3 + Math.random() * 0.4) * sy;
     this.wobblePhase = Math.random() * Math.PI * 2;
     this.wobbleSpeed = 0.03 + Math.random() * 0.03;
     this.alpha = 0.6 + Math.random() * 0.3;
     this.life = 1;
   }
   update() {
-    if (this.type === 'h2') {
-      this.y -= this.speed;
-      this.wobblePhase += this.wobbleSpeed;
-      if (this.y < this.targetY) {
-        this.life -= 0.02;
-        if (this.life <= 0) this.reset();
-      }
-    } else if (this.type === 'o2') {
-      this.x += (this.targetX - this.x) * 0.008;
-      this.wobblePhase += this.wobbleSpeed;
-      this.life -= 0.005;
+    this.y -= this.speed;
+    this.wobblePhase += this.wobbleSpeed;
+    if (this.y < this.targetY) {
+      this.life -= 0.02;
       if (this.life <= 0) this.reset();
-    } else if (this.type === 'h2o') {
-      this.wobblePhase += this.wobbleSpeed * 0.5;
-      // Gentle drift
-      this.y += Math.sin(this.wobblePhase) * 0.15;
-      this.x += Math.cos(this.wobblePhase * 0.7) * 0.1;
     }
   }
   draw(ctx) {
@@ -524,12 +473,63 @@ class BubbleParticle {
     ctx.arc(px - this.size * 0.3, py - this.size * 0.3, this.size * 0.3, 0, Math.PI * 2);
     ctx.fillStyle = `rgba(255,255,255,${a * 0.4})`;
     ctx.fill();
-    // H2O label
-    if (this.label) {
-      ctx.font = `${9 * sx}px 'Noto Sans SC', sans-serif`;
-      ctx.fillStyle = `rgba(100,200,255,${a * 0.8})`;
-      ctx.fillText('H₂O', px + this.size * 1.5, py + 3);
+  }
+}
+
+// Fe2+ particle emanating from left electrode (Fe) into solution
+class Fe2PlusParticle {
+  constructor() {
+    this.reset();
+  }
+  reset() {
+    // Start at Fe electrode surface, drift rightward into solution
+    this.startX = (230 + Math.random() * 18) * sx;
+    this.x = this.startX;
+    this.y = (280 + Math.random() * 140) * sy;
+    this.targetX = this.startX + (60 + Math.random() * 80) * sx;
+    this.size = 5 * sx;
+    this.color = [68, 204, 68]; // green
+    this.speed = (0.2 + Math.random() * 0.3) * sx;
+    this.wobblePhase = Math.random() * Math.PI * 2;
+    this.wobbleSpeed = 0.02 + Math.random() * 0.02;
+    this.alpha = 0.7 + Math.random() * 0.3;
+    this.life = 1;
+    this.t = 0;
+  }
+  update() {
+    this.t += 0.008 + Math.random() * 0.004;
+    this.x = this.startX + (this.targetX - this.startX) * Math.min(this.t, 1);
+    this.wobblePhase += this.wobbleSpeed;
+    if (this.t > 0.8) {
+      this.life -= 0.015;
+      if (this.life <= 0) this.reset();
     }
+  }
+  draw(ctx) {
+    const [r, g, b] = this.color;
+    const wobbleY = Math.sin(this.wobblePhase) * 4 * sy;
+    const px = this.x;
+    const py = this.y + wobbleY;
+    const a = this.alpha * this.life;
+    // Outer glow
+    ctx.beginPath();
+    ctx.arc(px, py, this.size * 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.08})`;
+    ctx.fill();
+    // Body
+    ctx.beginPath();
+    ctx.arc(px, py, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.6})`;
+    ctx.fill();
+    ctx.strokeStyle = `rgba(${r},${g},${b},${a * 0.8})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    // Label
+    ctx.font = `bold ${Math.max(8, this.size * 1.1)}px 'Noto Sans SC', sans-serif`;
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.9})`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Fe\u00B2\u207A', px, py);
   }
 }
 
@@ -572,98 +572,43 @@ class BokehParticle {
 let electrons = [];
 let ions = [];
 let bubbles = [];
+let fe2plus = [];
 let bokehs = [];
 
 function createAllParticles() {
   electrons = [];
   ions = [];
   bubbles = [];
+  fe2plus = [];
   bokehs = [];
   // Electrons along wire
   for (let i = 0; i < 14; i++) {
     electrons.push(new ElectronParticle());
   }
-  // H+ ions (left to right)
+  // H+ ions (left to right, toward Cu)
   for (let i = 0; i < 6; i++) {
     const ion = new IonParticle('h');
     ion.init();
     ions.push(ion);
   }
-  // SO4 2- ions (right to left)
+  // SO4 2- ions (right to left, toward Fe)
   for (let i = 0; i < 4; i++) {
     const ion = new IonParticle('s');
     ion.init();
     ions.push(ion);
   }
-  // H2 bubbles from left electrode
+  // H2 bubbles from right electrode (Cu)
   for (let i = 0; i < 8; i++) {
-    bubbles.push(new BubbleParticle('h2'));
+    bubbles.push(new BubbleParticle());
   }
-  // O2 particles toward right electrode
-  for (let i = 0; i < 5; i++) {
-    bubbles.push(new BubbleParticle('o2'));
-  }
-  // H2O water molecules near positive electrode
-  for (let i = 0; i < 4; i++) {
-    bubbles.push(new BubbleParticle('h2o'));
+  // Fe2+ particles from left electrode (Fe)
+  for (let i = 0; i < 6; i++) {
+    fe2plus.push(new Fe2PlusParticle());
   }
   // Ambient bokeh
   for (let i = 0; i < 25; i++) {
     bokehs.push(new BokehParticle());
   }
-}
-
-// ─── Bulb glow animation ───
-let bulbGlowPhase = 0;
-
-function updateBulbGlow() {
-  if (!an) return;
-  bulbGlowPhase += 0.02;
-  const flicker = 0.85 + 0.15 * Math.sin(bulbGlowPhase * 3.7) * Math.sin(bulbGlowPhase * 1.3);
-
-  const bC = document.getElementById('bC');
-  const bF = document.getElementById('bF');
-  const bGlow = document.getElementById('bGlow');
-  const bCone = document.getElementById('bCone');
-
-  // Bulb body glow
-  bC.setAttribute('fill', `rgba(255,220,100,${0.15 * flicker})`);
-  bC.setAttribute('stroke', `rgba(255,220,100,${0.7 * flicker})`);
-  bC.setAttribute('stroke-width', '2');
-
-  // Filament glow
-  bF.setAttribute('stroke', `rgba(255,240,150,${flicker})`);
-  bF.setAttribute('stroke-width', '2');
-
-  // Radial glow
-  const stops = bGlow.parentElement.querySelector('#bulbGlow');
-  if (stops) {
-    const stopEls = stops.querySelectorAll('stop');
-    if (stopEls.length >= 3) {
-      stopEls[0].setAttribute('stop-opacity', (0.4 * flicker).toFixed(3));
-      stopEls[1].setAttribute('stop-opacity', (0.15 * flicker).toFixed(3));
-      stopEls[2].setAttribute('stop-opacity', '0');
-    }
-  }
-  bGlow.setAttribute('opacity', '1');
-
-  // Light cone
-  bCone.setAttribute('fill', `rgba(255,220,100,${0.03 * flicker})`);
-  bCone.setAttribute('opacity', '1');
-}
-
-function resetBulbGlow() {
-  const bC = document.getElementById('bC');
-  const bF = document.getElementById('bF');
-  const bGlow = document.getElementById('bGlow');
-  const bCone = document.getElementById('bCone');
-  bC.setAttribute('fill', 'rgba(255,220,100,0.03)');
-  bC.setAttribute('stroke', 'rgba(255,255,255,0.2)');
-  bC.setAttribute('stroke-width', '1.5');
-  bF.setAttribute('stroke', 'rgba(255,220,100,0.3)');
-  bF.setAttribute('stroke-width', '1.5');
-  bGlow.setAttribute('opacity', '0');
-  bCone.setAttribute('opacity', '0');
 }
 
 // ─── Vignette ───
@@ -684,8 +629,11 @@ function animate() {
   // Draw bokeh background
   bokehs.forEach(b => { b.update(); b.draw(cx); });
 
-  // Draw bubbles
+  // Draw bubbles (H2 from Cu electrode)
   bubbles.forEach(b => { b.update(); b.draw(cx); });
+
+  // Draw Fe2+ particles
+  fe2plus.forEach(f => { f.update(); f.draw(cx); });
 
   // Draw ions
   ions.forEach(i => { i.update(); i.draw(cx); });
@@ -695,9 +643,6 @@ function animate() {
 
   // Vignette overlay
   drawVignette(cx);
-
-  // Bulb glow
-  updateBulbGlow();
 
   af = requestAnimationFrame(animate);
 }
@@ -715,7 +660,6 @@ function toggleAnim() {
   } else {
     cancelAnimationFrame(af);
     cx.clearRect(0, 0, cv.width, cv.height);
-    resetBulbGlow();
   }
 }
 
