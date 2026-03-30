@@ -135,9 +135,9 @@
         <!-- Motor shaft (rotates when active) -->
         <line x1="383" y1="35" x2="393" y2="35" stroke="rgba(200,200,200,0.4)" stroke-width="2" stroke-linecap="round" id="motorShaft"/>
         <!-- Spinning indicator line on shaft end -->
-        <g id="motorSpin" transform-origin="388 35">
-          <line x1="385" y1="35" x2="391" y2="32" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
-          <line x1="385" y1="35" x2="391" y2="38" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+        <g id="motorSpin" transform="translate(388,35)">
+          <line x1="-3" y1="0" x2="3" y2="-3" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
+          <line x1="-3" y1="0" x2="3" y2="3" stroke="rgba(255,255,255,0.2)" stroke-width="0.8"/>
         </g>
         <!-- Motor label -->
         <text x="360" y="60" text-anchor="middle" fill="rgba(255,255,255,0.35)" font-size="10">马达</text>
@@ -634,8 +634,8 @@ function updateMotorSpin() {
   // Shaft brightens
   motorShaft.setAttribute('stroke', 'rgba(220,220,230,0.7)');
 
-  // Rotate spinning indicator
-  motorSpin.setAttribute('transform', `rotate(${motorSpinAngle % 360} 388 35)`);
+  // Rotate spinning indicator around its center (388,35)
+  motorSpin.setAttribute('transform', `translate(388,35) rotate(${motorSpinAngle % 360})`);
   const spinLines = motorSpin.querySelectorAll('line');
   spinLines.forEach(l => l.setAttribute('stroke', 'rgba(255,255,255,0.5)'));
 }
@@ -654,7 +654,7 @@ function resetMotorSpin() {
   motorShaft.setAttribute('stroke', 'rgba(200,200,200,0.4)');
 
   // Reset spin indicator
-  motorSpin.setAttribute('transform', 'rotate(0 388 35)');
+  motorSpin.setAttribute('transform', 'translate(388,35) rotate(0)');
   const spinLines = motorSpin.querySelectorAll('line');
   spinLines.forEach(l => l.setAttribute('stroke', 'rgba(255,255,255,0.2)'));
 }
