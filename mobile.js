@@ -12,7 +12,52 @@
     '*{box-sizing:border-box;}' +
     'body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}' +
 
-    // Phone landscape only (very short screens)
+    // ── Tablet / medium screens (max-width 1200px, landscape) ──
+    '@media screen and (max-width:1200px) and (orientation:landscape){' +
+      // Topbar: wrap controls to second line if needed
+      '.topbar{flex-wrap:wrap;height:auto!important;min-height:44px;padding:0.3rem 0.8rem!important;gap:0.3rem;}' +
+      '.topbar-controls{flex-wrap:wrap;gap:0.3rem!important;}' +
+      '.ctrl-btn{padding:0.3rem 0.6rem!important;font-size:0.68rem!important;}' +
+      '.topbar-title{font-size:0.85rem!important;}' +
+      '.topbar-badge{font-size:0.55rem!important;}' +
+      '.back-btn{font-size:0.7rem!important;padding:0.2rem 0.4rem!important;}' +
+      // Lab: narrower side panels
+      '.lab-topbar{flex-wrap:wrap;height:auto!important;min-height:44px;padding:0.3rem 0.8rem!important;}' +
+      '.lab-main{grid-template-columns:180px 1fr 200px!important;}' +
+      '.material-tray{padding:0.6rem!important;}' +
+      '.history-panel{padding:0.6rem!important;}' +
+      '.task-card{padding:0.5rem!important;}' +
+      '.task-card p{font-size:0.72rem!important;}' +
+      '.mat-icon{width:26px!important;height:26px!important;font-size:0.6rem!important;}' +
+      '.mat-name{font-size:0.7rem!important;}' +
+      '.material-item{padding:0.35rem 0.5rem!important;gap:0.4rem!important;}' +
+      // Result overlay
+      '.result-card{max-width:360px!important;padding:1.2rem!important;}' +
+      '.result-task-title{font-size:0.8rem!important;}' +
+      '.result-task-desc{font-size:0.72rem!important;}' +
+      // Model detail panel
+      '.detail-panel{width:280px!important;padding:1rem!important;}' +
+      '.detail-title{font-size:0.95rem!important;}' +
+      '.detail-section p{font-size:0.78rem!important;}' +
+      // Mode bar / step nav
+      '.hint-text{display:none!important;}' +
+    '}' +
+
+    // ── Small tablet (max-width 900px, landscape) ──
+    '@media screen and (max-width:900px) and (orientation:landscape){' +
+      '.lab-main{grid-template-columns:150px 1fr 160px!important;}' +
+      '.material-tray{padding:0.4rem!important;}' +
+      '.history-panel{padding:0.4rem!important;font-size:0.65rem!important;}' +
+      '.tray-label,.history-title{font-size:0.55rem!important;}' +
+      '.task-card p{font-size:0.65rem!important;}' +
+      '.reaction{font-size:0.75rem!important;padding:0.4rem!important;}' +
+      '.mat-icon{width:22px!important;height:22px!important;font-size:0.55rem!important;}' +
+      '.mat-name{font-size:0.62rem!important;}' +
+      '.detail-panel{width:240px!important;font-size:0.75rem!important;}' +
+      '.ctrl-btn{padding:0.2rem 0.5rem!important;font-size:0.6rem!important;}' +
+    '}' +
+
+    // ── Phone landscape (very short screens) ──
     '@media screen and (max-height:450px) and (orientation:landscape){' +
       '.topbar,.lab-topbar{height:32px!important;padding:0 0.5rem!important;}' +
       '.topbar-title,.lab-title{font-size:0.7rem!important;}' +
@@ -31,7 +76,7 @@
       '.card-desc{font-size:0.55rem!important;}' +
       '.card-tag{font-size:0.45rem!important;margin-top:0.3rem!important;padding:0.1rem 0.4rem!important;}' +
       '.footer{font-size:0.45rem!important;}' +
-      '.lab-main{grid-template-columns:140px 1fr 160px!important;}' +
+      '.lab-main{grid-template-columns:130px 1fr 140px!important;}' +
       '.material-tray,.history-panel{padding:0.3rem!important;font-size:0.6rem!important;}' +
       '.task-card{padding:0.3rem!important;}' +
       '.task-card p{font-size:0.55rem!important;}' +
@@ -46,6 +91,7 @@
       '.group-btn{width:44px!important;height:44px!important;font-size:0.7rem!important;}' +
       '.group-btn span{font-size:0.4rem!important;}' +
       '.step-nav,.mode-bar{bottom:0.3rem!important;}' +
+      '.detail-panel{width:220px!important;padding:0.6rem!important;font-size:0.7rem!important;}' +
       '.hint-text{display:none!important;}' +
     '}' +
 
