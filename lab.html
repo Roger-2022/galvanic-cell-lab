@@ -1561,6 +1561,33 @@ function renderHistory(data) {
     initGroupScreen();
   }
 
+  // Poll for config changes (every 5 seconds) — picks up dashboard saves
+  setInterval(() => {
+    let changed = false;
+    if (useServer) {
+      fetch(API_BASE + '/api/config').then(r => r.ok ? r.json() : null).then(cfg => {
+        if (cfg) {
+          if (cfg.maxAttempts && cfg.maxAttempts !== CONFIG.maxAttempts) { CONFIG.maxAttempts = cfg.maxAttempts; changed = true; }
+          if (cfg.cooldownSeconds && cfg.cooldownSeconds !== CONFIG.cooldownSeconds) { CONFIG.cooldownSeconds = cfg.cooldownSeconds; changed = true; }
+          if (cfg.totalGroups && cfg.totalGroups !== CONFIG.totalGroups) { CONFIG.totalGroups = cfg.totalGroups; changed = true; }
+        }
+      }).catch(() => {});
+    } else {
+      const saved = localStorage.getItem('galvanic_lab_config');
+      if (saved) {
+        const cfg = JSON.parse(saved);
+        if (cfg.maxAttempts && cfg.maxAttempts !== CONFIG.maxAttempts) { CONFIG.maxAttempts = cfg.maxAttempts; changed = true; }
+        if (cfg.cooldownSeconds && cfg.cooldownSeconds !== CONFIG.cooldownSeconds) { CONFIG.cooldownSeconds = cfg.cooldownSeconds; changed = true; }
+      }
+    }
+    if (changed) {
+      document.getElementById('cooldownDisplay').textContent = CONFIG.cooldownSeconds + 's';
+      if (currentGroup) {
+        fetchGroupData(currentGroup).then(data => { if (data) updateLabUI(data); });
+      }
+    }
+  }, 5000);
+
   // Poll for teacher reset signal (every 3 seconds)
   if (useServer) {
     let lastResetTime = 0;
