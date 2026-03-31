@@ -674,6 +674,11 @@
     color: var(--red);
     border: 1.5px solid rgba(217,83,79,0.3);
   }
+  .result-task-icon.partial {
+    background: rgba(240,173,78,0.15);
+    color: #f0ad4e;
+    border: 1.5px solid rgba(240,173,78,0.3);
+  }
 
   .result-task-title {
     font-size: 0.85rem;
@@ -807,7 +812,7 @@
       <div class="tray-section">
         <div class="tray-label">电解质溶液</div>
         <div class="material-item" data-type="solution" data-value="H2SO4" onclick="selectMaterial(this, 'solution')">
-          <div class="mat-icon solution">H₂SO₄</div>
+          <div class="mat-icon solution" style="white-space:nowrap;font-size:0.7rem;">H₂SO₄</div>
           <div class="mat-info"><div class="mat-name">稀硫酸</div></div>
         </div>
         <div class="material-item" data-type="solution" data-value="NaCl" onclick="selectMaterial(this, 'solution')">
@@ -858,7 +863,7 @@
           <div class="result-task">
             <div class="result-task-icon fail" id="task2Icon">✗</div>
             <div>
-              <div class="result-task-title">任务二：与给定反应一致</div>
+              <div class="result-task-title">任务二：基于给定反应设计原电池</div>
               <div class="result-task-desc" id="task2Desc">—</div>
             </div>
           </div>
@@ -1225,31 +1230,25 @@ function evaluateDesignV2(neg, pos, sol) {
 
   // Glass rod — insulator
   if (!CONDUCTIVE[neg] || !CONDUCTIVE[pos]) {
-    result.hint = '玻璃棒是绝缘体，不能导电，无法作为电极材料。';
-    result.task1Reason = 'G表不偏转：电极材料不导电';
+    result.task1Reason = 'G表不偏转';
     return result;
   }
 
   // Non-electrolyte
   if (sol === 'ethanol' || sol === 'water') {
-    result.hint = sol === 'ethanol'
-      ? '无水乙醇是非电解质，不能导电，无法形成闭合回路。'
-      : '蒸馏水几乎不含自由移动的离子，无法导电。';
-    result.task1Reason = 'G表不偏转：溶液不导电';
+    result.task1Reason = 'G表不偏转';
     return result;
   }
 
   // Same electrode material
   if (neg === pos) {
-    result.hint = '两极材料相同，无法形成电位差，不能产生电流。';
-    result.task1Reason = 'G表不偏转：两极材料相同';
+    result.task1Reason = 'G表不偏转';
     return result;
   }
 
   // Same activity level (Cu vs C)
   if (ACTIVITY[neg] === ACTIVITY[pos]) {
-    result.hint = '铜和石墨活泼性相近，无法形成足够的电位差。';
-    result.task1Reason = 'G表不偏转：两极活泼性相同';
+    result.task1Reason = 'G表不偏转';
     return result;
   }
 
@@ -1258,8 +1257,7 @@ function evaluateDesignV2(neg, pos, sol) {
     const hasFe = (neg === 'Fe' || pos === 'Fe');
     const hasZn = (neg === 'Zn' || pos === 'Zn');
     if (!hasFe && !hasZn) {
-      result.hint = '铜和石墨都不与稀硫酸反应，无法发生氧化还原反应。需要至少一个活泼金属（铁或锌）。';
-      result.task1Reason = 'G表不偏转：无活泼金属与酸反应';
+      result.task1Reason = 'G表不偏转';
       return result;
     }
   }
@@ -1271,38 +1269,40 @@ function evaluateDesignV2(neg, pos, sol) {
   const posAct = ACTIVITY[pos];
   if (negAct > posAct) {
     result.deflection = 'right';
-    result.task1Reason = 'G表右偏：' + ELECTRODE_NAME[neg] + '（负极）比' + ELECTRODE_NAME[pos] + '（正极）活泼，电子从左向右流';
+    result.task1Reason = 'G表右偏';
   } else {
     result.deflection = 'left';
-    result.task1Reason = 'G表左偏：' + ELECTRODE_NAME[pos] + '实际比' + ELECTRODE_NAME[neg] + '活泼，真实电流方向相反';
+    result.task1Reason = 'G表左偏';
   }
 
   // ── Task 2: matches Fe + 2H⁺ = Fe²⁺ + H₂↑ ──
+  // Correct: neg=Fe, pos=Cu/C, sol=H2SO4 → pass (green ✓)
+  // Swapped: neg=Cu/C, pos=Fe, sol=H2SO4 → partial (yellow ?)
+  // Otherwise → fail (red ✗)
+  const swapped = pos === 'Fe' && (neg === 'Cu' || neg === 'C') && sol === 'H2SO4';
   if (neg === 'Fe' && (pos === 'Cu' || pos === 'C') && sol === 'H2SO4') {
     result.task2 = true;
-    result.task2Reason = '与给定反应一致：Fe做负极失电子，H⁺在' + ELECTRODE_NAME[pos] + '正极得电子产生H₂';
+    result.task2Status = 'pass';
+    result.task2Reason = '与给定反应一致';
+  } else if (swapped) {
+    result.task2 = false;
+    result.task2Status = 'partial';
+    result.task2Reason = '请思考电池正负极的定义';
   } else {
-    // Generate specific reason
-    const reasons = [];
-    if (sol !== 'H2SO4') reasons.push('电解质需选稀硫酸（提供H⁺）');
-    if (neg !== 'Fe') reasons.push('负极需选铁（Fe失电子）');
-    if (pos !== 'Cu' && pos !== 'C') reasons.push('正极需选铜或石墨');
-    result.task2Reason = '与给定反应不一致：' + reasons.join('；');
+    result.task2 = false;
+    result.task2Status = 'fail';
+    result.task2Reason = '与给定反应不一致';
   }
 
-  // Hint for partial success
-  if (!result.task2) {
-    if (sol === 'NaCl') {
-      result.hint = '请思考：原电池工作时的反应是给定的化学反应么？NaCl溶液不含H⁺，正极反应无法产生H₂。';
-    } else if (neg === 'Zn' || pos === 'Zn') {
-      result.hint = '请思考：原电池工作时的反应是给定的化学反应么？锌比铁活泼，会优先失电子。';
-    } else if (result.deflection === 'left') {
-      result.hint = '请结合电池正负极定义，思考原电池正负极材料选择。G表左偏说明实际电流方向与你标注的相反。';
-    } else {
-      result.hint = '原电池能产生电能，但请对照给定反应 Fe + 2H⁺ = Fe²⁺ + H₂↑ 调整你的选择。';
-    }
-  } else {
+  // Hint
+  if (result.task1 && result.task2) {
     result.hint = '';
+  } else if (result.task2Status === 'partial') {
+    result.hint = '请思考电池正负极的定义，虚拟实验台进一步优化设计';
+  } else if (result.task1 && !result.task2) {
+    result.hint = '部分任务已完成，请思考后继续实验';
+  } else {
+    result.hint = '请思考后继续实验';
   }
 
   return result;
@@ -1334,6 +1334,7 @@ async function submitDesign() {
       success: result.task1 && result.task2,
       task1: result.task1,
       task2: result.task2,
+      task2Status: result.task2Status,
       deflection: result.deflection,
       feedback: result.hint,
       timestamp: Date.now()
@@ -1401,8 +1402,16 @@ function showResultPopup(result, data, isExploring) {
   t1Icon.className = 'result-task-icon ' + (result.task1 ? 'pass' : 'fail');
   t1Desc.textContent = result.task1Reason;
 
-  t2Icon.textContent = result.task2 ? '✓' : '✗';
-  t2Icon.className = 'result-task-icon ' + (result.task2 ? 'pass' : 'fail');
+  if (result.task2Status === 'pass') {
+    t2Icon.textContent = '✓';
+    t2Icon.className = 'result-task-icon pass';
+  } else if (result.task2Status === 'partial') {
+    t2Icon.textContent = '?';
+    t2Icon.className = 'result-task-icon partial';
+  } else {
+    t2Icon.textContent = '✗';
+    t2Icon.className = 'result-task-icon fail';
+  }
   t2Desc.textContent = result.task2Reason;
 
   if (result.hint) {
@@ -1509,7 +1518,7 @@ function renderHistory(data) {
         负极：${attempt.negName} &nbsp;|&nbsp; 正极：${attempt.posName} &nbsp;|&nbsp; 溶液：${attempt.solName}
       </div>
       <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.3rem;">
-        任务一${attempt.task1 ? '✓' : '✗'} &nbsp; 任务二${attempt.task2 ? '✓' : '✗'} &nbsp; (${deflText})
+        任务一${attempt.task1 ? '✓' : '✗'} &nbsp; 任务二${attempt.task2Status === 'pass' ? '✓' : attempt.task2Status === 'partial' ? '?' : '✗'} &nbsp; (${deflText})
       </div>
     `;
     list.appendChild(item);
