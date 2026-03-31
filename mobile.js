@@ -210,6 +210,11 @@
 
   var ol = document.createElement('div');
   ol.id = 'landscapeOverlay';
-  ol.innerHTML = '<div style="text-align:center;color:#e4e6ec;font-family:sans-serif"><div style="margin-bottom:1rem;animation:loR 2.5s ease-in-out infinite"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="14" width="32" height="20" rx="3" stroke="#5cc4c4" stroke-width="2"/></svg></div><div style="font-size:1.1rem;font-weight:600">请将设备横屏使用</div><div style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:0.3rem">横屏模式体验更佳</div></div>';
+  ol.innerHTML = '<div style="text-align:center;color:#e4e6ec;font-family:sans-serif;padding:2rem;">' +
+    '<div style="margin-bottom:1rem;animation:loR 2.5s ease-in-out infinite"><svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="8" y="14" width="32" height="20" rx="3" stroke="#5cc4c4" stroke-width="2"/></svg></div>' +
+    '<div style="font-size:1.1rem;font-weight:600">请使用平板或电脑访问</div>' +
+    '<div style="font-size:0.8rem;color:rgba(255,255,255,0.5);margin-top:0.5rem;line-height:1.6;">本平台包含 3D 模型和交互实验<br>手机屏幕过小，体验不佳</div>' +
+    '<div style="font-size:0.75rem;color:rgba(92,196,196,0.6);margin-top:1rem;">如使用平板，请横屏操作</div>' +
+    '</div>';
   document.body.appendChild(ol);
 })();
