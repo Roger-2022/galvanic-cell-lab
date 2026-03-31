@@ -17,34 +17,50 @@
     'html,body{max-width:100vw;overflow-x:hidden;height:100dvh;}' +
     '*{box-sizing:border-box;}' +
     'body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);overflow-wrap:break-word;word-break:break-word;}' +
+    // App grid: use dvh instead of vh for iOS Safari
+    '.app{height:100dvh!important;}' +
     // Topbar always allows wrapping
     '.topbar,.lab-topbar{flex-wrap:wrap;}' +
-    '.topbar-left{min-width:0;flex-shrink:1;}' +
-    '.topbar-controls{flex-wrap:wrap;}' +
+    '.topbar-left,.lab-topbar-left{min-width:0;flex-shrink:1;}' +
+    '.topbar-controls{flex-wrap:wrap;flex-shrink:1;min-width:0;}' +
+    '.ctrl-btn{white-space:nowrap;}' +
     // Detail panel: fluid width with safety cap
     '.detail-panel{max-width:calc(100vw - 40px)!important;overflow-wrap:break-word;}' +
     // Lab panels text wrapping
     '.history-panel,.history-choices,.history-feedback,.material-tray{overflow-wrap:break-word;}' +
+    // Step nav / mode bar: respect safe area
+    '.step-nav,.mode-bar{bottom:max(1.5rem,env(safe-area-inset-bottom))!important;}' +
 
-    // ── Tablet / medium screens (max-width 1200px, landscape) ──
-    '@media screen and (max-width:1200px) and (orientation:landscape){' +
+    // ── Tablet / medium screens (max-width 1200px) ──
+    // NOTE: removed orientation:landscape so portrait tablets also get fixes
+    '@media screen and (max-width:1200px){' +
+      // CRITICAL: let topbar row expand when buttons wrap
+      '.app{grid-template-rows:auto 1fr!important;}' +
       // Topbar
       '.topbar{height:auto!important;min-height:44px;padding:0.3rem 0.8rem!important;gap:0.3rem;}' +
       '.topbar-controls{gap:0.3rem!important;}' +
       '.ctrl-btn{padding:0.3rem 0.6rem!important;font-size:0.68rem!important;}' +
-      '.topbar-title{font-size:0.85rem!important;}' +
+      '.topbar-title{font-size:0.85rem!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;}' +
       '.topbar-badge{font-size:0.55rem!important;}' +
       '.back-btn{font-size:0.7rem!important;padding:0.2rem 0.4rem!important;}' +
-      // Lab
+      // Lab topbar
       '.lab-topbar{height:auto!important;min-height:44px;padding:0.3rem 0.8rem!important;}' +
-      '.lab-main{grid-template-columns:minmax(140px,18vw) 1fr minmax(160px,20vw)!important;}' +
+      '.lab-topbar-left{gap:0.5rem!important;}' +
+      '.lab-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;}' +
+      '.lab-stats{flex-shrink:0;gap:0.6rem!important;}' +
+      '.lab-stats .stat-item{font-size:0.72rem!important;}' +
+      // Lab grid: narrower side panels
+      '.lab-main{grid-template-columns:minmax(130px,17vw) 1fr minmax(150px,19vw)!important;}' +
       '.material-tray{padding:0.6rem!important;}' +
-      '.history-panel{padding:0.6rem!important;}' +
+      '.history-panel{padding:0.6rem!important;overflow-wrap:break-word!important;word-break:break-word!important;}' +
+      '.history-choices,.history-feedback{font-size:0.7rem!important;}' +
       '.task-card{padding:0.5rem!important;}' +
       '.task-card p{font-size:0.72rem!important;}' +
       '.mat-icon{width:26px!important;height:26px!important;font-size:0.6rem!important;}' +
       '.mat-name{font-size:0.7rem!important;}' +
       '.material-item{padding:0.35rem 0.5rem!important;gap:0.4rem!important;}' +
+      // Question modal safety
+      '#questionModal>div{max-width:calc(100vw - 2rem)!important;}' +
       // Result overlay
       '.result-card{max-width:360px!important;padding:1.2rem!important;}' +
       '.result-task-title{font-size:0.8rem!important;}' +
@@ -58,9 +74,10 @@
       '.hint-text{display:none!important;}' +
     '}' +
 
-    // ── Small tablet (max-width 900px, landscape) ──
-    '@media screen and (max-width:900px) and (orientation:landscape){' +
-      '.lab-main{grid-template-columns:minmax(120px,16vw) 1fr minmax(130px,17vw)!important;}' +
+    // ── Small tablet (max-width 900px) ──
+    '@media screen and (max-width:900px){' +
+      '.app{grid-template-rows:auto 1fr!important;}' +
+      '.lab-main{grid-template-columns:minmax(110px,15vw) 1fr minmax(120px,16vw)!important;}' +
       '.material-tray{padding:0.4rem!important;}' +
       '.history-panel{padding:0.4rem!important;font-size:0.65rem!important;}' +
       '.tray-label,.history-title{font-size:0.55rem!important;}' +
@@ -73,12 +90,14 @@
       '.detail-formula,.df{font-size:0.85rem!important;padding:0.4rem!important;}' +
       '.detail-section,.ds{padding:0.7rem!important;}' +
       '.ctrl-btn{padding:0.2rem 0.5rem!important;font-size:0.6rem!important;}' +
+      '.topbar-title{max-width:160px!important;}' +
     '}' +
 
     // ── Phone landscape (very short screens) ──
     '@media screen and (max-height:450px) and (orientation:landscape){' +
+      '.app{grid-template-rows:auto 1fr!important;}' +
       '.topbar,.lab-topbar{height:32px!important;padding:0 0.5rem!important;}' +
-      '.topbar-title,.lab-title{font-size:0.7rem!important;}' +
+      '.topbar-title,.lab-title{font-size:0.7rem!important;max-width:120px!important;}' +
       '.ctrl-btn,.action-btn{padding:0.15rem 0.4rem!important;font-size:0.55rem!important;}' +
       '.back-btn{font-size:0.55rem!important;}' +
       '.topbar-badge,.lab-group-badge{font-size:0.5rem!important;padding:0.1rem 0.3rem!important;}' +
@@ -94,7 +113,7 @@
       '.card-desc{font-size:0.55rem!important;}' +
       '.card-tag{font-size:0.45rem!important;margin-top:0.3rem!important;padding:0.1rem 0.4rem!important;}' +
       '.footer{font-size:0.45rem!important;}' +
-      '.lab-main{grid-template-columns:120px 1fr 130px!important;}' +
+      '.lab-main{grid-template-columns:110px 1fr 120px!important;}' +
       '.material-tray,.history-panel{padding:0.3rem!important;font-size:0.6rem!important;}' +
       '.task-card{padding:0.3rem!important;}' +
       '.task-card p{font-size:0.55rem!important;}' +
@@ -123,6 +142,22 @@
     '@media(orientation:landscape){#landscapeOverlay{display:none!important;}}';
 
   document.head.appendChild(s);
+
+  // Dynamic topbar height tracking for detail-panel top offset
+  function syncTopbarHeight() {
+    var tb = document.querySelector('.topbar') || document.querySelector('.lab-topbar');
+    if (tb) {
+      document.documentElement.style.setProperty('--topbar-h', tb.offsetHeight + 'px');
+    }
+  }
+  // Add CSS rule using the variable
+  var s2 = document.createElement('style');
+  s2.textContent = '.detail-panel{top:var(--topbar-h,56px)!important;}';
+  document.head.appendChild(s2);
+  window.addEventListener('resize', syncTopbarHeight);
+  window.addEventListener('load', syncTopbarHeight);
+  // Also run after a short delay for dynamic content
+  setTimeout(syncTopbarHeight, 200);
 
   var ol = document.createElement('div');
   ol.id = 'landscapeOverlay';
