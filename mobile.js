@@ -14,11 +14,15 @@
   var s = document.createElement('style');
   s.textContent =
     // ── Global base rules (no media query) ──
-    'html,body{max-width:100vw;overflow-x:hidden;height:100dvh;}' +
+    // CRITICAL: prevent ANY horizontal overflow at root level
+    'html{width:100%!important;max-width:100%!important;overflow-x:hidden!important;}' +
+    'body{width:100%!important;max-width:100vw!important;overflow-x:hidden!important;height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);overflow-wrap:break-word;word-break:break-word;margin:0!important;}' +
     '*{box-sizing:border-box;}' +
-    'body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);overflow-wrap:break-word;word-break:break-word;}' +
-    // App grid: use dvh instead of vh for iOS Safari
-    '.app{height:100dvh!important;}' +
+    // Constrain all top-level containers
+    '.app{height:100dvh!important;width:100%!important;max-width:100vw!important;overflow-x:hidden!important;}' +
+    '#labScreen,.lab-main,.topbar,.lab-topbar{max-width:100vw!important;}' +
+    // 2D diagram containers must not exceed viewport
+    '.diagram-container{max-width:100vw!important;}' +
     // Topbar always allows wrapping
     '.topbar,.lab-topbar{flex-wrap:wrap;}' +
     '.topbar-left,.lab-topbar-left{min-width:0;flex-shrink:1;}' +
