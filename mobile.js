@@ -134,6 +134,51 @@
       '.hint-text{display:none!important;}' +
     '}' +
 
+    // ── Phone portrait (max-width 600px) ──
+    '@media screen and (max-width:600px){' +
+      // Diagram containers: force fluid width
+      '.diagram-container{width:calc(100vw - 1rem)!important;height:auto!important;aspect-ratio:4/3;}' +
+      '.circuit-diagram{width:calc(100vw - 1rem)!important;height:auto!important;}' +
+      // Lab: single column layout
+      '.lab-main{grid-template-columns:1fr!important;grid-template-rows:auto 1fr auto!important;}' +
+      '.material-tray{max-height:120px!important;overflow-y:auto!important;border-right:none!important;border-bottom:1px solid rgba(92,196,196,0.1)!important;}' +
+      '.material-tray .material-list{display:flex!important;flex-wrap:wrap!important;gap:0.3rem!important;}' +
+      '.material-item{flex:0 0 auto!important;padding:0.25rem 0.5rem!important;}' +
+      '.history-panel{max-height:150px!important;overflow-y:auto!important;border-left:none!important;border-top:1px solid rgba(92,196,196,0.1)!important;}' +
+      // Group selection grid: 3 columns
+      '.group-grid{grid-template-columns:repeat(3,1fr)!important;max-width:calc(100vw - 2rem)!important;}' +
+      '.group-btn{width:60px!important;height:60px!important;font-size:0.8rem!important;}' +
+      '.group-btn span{font-size:0.45rem!important;}' +
+      '.group-title{font-size:1rem!important;}' +
+      // Topbar: compact
+      '.topbar-title{max-width:100px!important;font-size:0.72rem!important;}' +
+      '.lab-title{max-width:80px!important;font-size:0.72rem!important;}' +
+      '.ctrl-btn{padding:0.2rem 0.35rem!important;font-size:0.55rem!important;}' +
+      '.back-btn{font-size:0.6rem!important;padding:0.15rem 0.3rem!important;}' +
+      '.lab-stats .stat-item{font-size:0.6rem!important;}' +
+      // Detail panel: full width overlay
+      '.detail-panel{position:fixed!important;width:calc(100vw - 1rem)!important;max-width:none!important;left:0.5rem!important;right:0.5rem!important;bottom:0!important;top:auto!important;max-height:50vh!important;overflow-y:auto!important;border-radius:0.75rem 0.75rem 0 0!important;z-index:100!important;}' +
+      // Hotspot labels: smaller
+      '.hotspot::after{font-size:0.55rem!important;padding:0.15rem 0.3rem!important;}' +
+      // Task card
+      '.task-card{padding:0.4rem!important;}' +
+      '.task-card p{font-size:0.6rem!important;}' +
+      '.reaction{font-size:0.7rem!important;}' +
+      // Index page
+      '.header h1{font-size:1.5rem!important;}' +
+      '.cards-grid{grid-template-columns:1fr!important;max-width:calc(100vw - 2rem)!important;gap:0.6rem!important;}' +
+      '.card{padding:0.8rem!important;}' +
+      '.card-icon{width:40px!important;height:40px!important;}' +
+      '.card-title{font-size:1rem!important;}' +
+      '.card-desc{font-size:0.7rem!important;}' +
+      // Result overlay
+      '.result-card{max-width:calc(100vw - 2rem)!important;padding:1rem!important;}' +
+      '#questionModal>div{max-width:calc(100vw - 1rem)!important;max-height:80vh!important;overflow-y:auto!important;}' +
+      // Step nav and mode bar
+      '.step-nav,.mode-bar{padding:0.3rem 0.5rem!important;gap:0.3rem!important;}' +
+      '.step-dot{width:6px!important;height:6px!important;}' +
+    '}' +
+
     // ── Landscape overlay ──
     '#landscapeOverlay{display:none;position:fixed;inset:0;z-index:999999;background:linear-gradient(135deg,#060a14,#0a1628);align-items:center;justify-content:center;}' +
     '@keyframes loR{0%,100%{transform:rotate(0)}30%,70%{transform:rotate(90deg)}}' +
