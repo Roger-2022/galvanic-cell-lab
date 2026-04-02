@@ -1414,7 +1414,11 @@ function showInlineResult(result, data, isExploring) {
   }
 }
 
+var _cooldownInterval = null;
 function startInlineCooldown() {
+  // Clear any existing cooldown to prevent flicker
+  if (_cooldownInterval) clearInterval(_cooldownInterval);
+
   const el = document.getElementById('inlineCooldown');
   const num = document.getElementById('cooldownNum');
   const fill = document.getElementById('cooldownFill');
@@ -1427,13 +1431,14 @@ function startInlineCooldown() {
   num.textContent = remaining;
   fill.style.width = '100%';
 
-  const interval = setInterval(() => {
+  _cooldownInterval = setInterval(() => {
     remaining--;
     num.textContent = remaining;
     fill.style.width = `${(remaining / CONFIG.cooldownSeconds) * 100}%`;
 
     if (remaining <= 0) {
-      clearInterval(interval);
+      clearInterval(_cooldownInterval);
+      _cooldownInterval = null;
       el.classList.remove('active');
       // Don't auto-reset — show "重新设计" button so student can review their failed design
       document.getElementById('retryBtn').style.display = 'inline-block';
