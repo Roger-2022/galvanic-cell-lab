@@ -996,10 +996,9 @@ async function initGroupScreen() {
     if (data.success) {
       btn.style.borderColor = 'var(--green)';
       btn.style.background = 'rgba(92,184,92,0.12)';
-      btn.innerHTML += '<span style="font-size:0.4rem;color:var(--green);display:block;margin-top:0.1rem;">已完成</span>';
     } else if (data.attemptsUsed > 0) {
-      btn.style.borderColor = 'rgba(201,168,76,0.4)';
-      btn.innerHTML += '<span style="font-size:0.4rem;color:var(--gold);display:block;margin-top:0.1rem;">进行中</span>';
+      btn.style.borderColor = 'var(--gold)';
+      btn.style.background = 'rgba(201,168,76,0.08)';
     }
     btn.onclick = () => enterLab(i);
     grid.appendChild(btn);
@@ -1112,32 +1111,27 @@ function selectMaterial(el, slotType) {
 
 function openSlotSelector(slotType) {
   activeSlot = slotType;
-  // Determine which material types are compatible with this slot
   const isElectrodeSlot = (slotType === 'neg_electrode' || slotType === 'pos_electrode');
   document.querySelectorAll('.material-item').forEach(item => {
-    item.classList.remove('selected');
-    const newItem = item.cloneNode(true);
-    item.parentNode.replaceChild(newItem, item);
-
-    const itemType = newItem.dataset.type; // 'cathode' (electrode) or 'solution'
+    item.classList.remove('disabled');
+    const itemType = item.dataset.type;
     const isElectrode = (itemType === 'cathode');
-    // Only allow compatible types: electrode → electrode slot, solution → solution slot
+
     if (isElectrodeSlot !== isElectrode) {
-      newItem.classList.add('disabled');
-      newItem.onclick = null;
+      item.classList.add('disabled');
+      item.onclick = null;
       return;
     }
 
-    newItem.onclick = () => {
+    item.onclick = () => {
       choices[slotType] = {
-        value: newItem.dataset.value,
-        name: newItem.querySelector('.mat-name').textContent
+        value: item.dataset.value,
+        name: item.querySelector('.mat-name').textContent
       };
-      updateSlotUI(slotType, newItem.querySelector('.mat-name').textContent);
+      updateSlotUI(slotType, item.querySelector('.mat-name').textContent);
       updateMaterialHighlights();
       checkSubmitReady();
       activeSlot = null;
-      // Remove disabled state
       document.querySelectorAll('.material-item').forEach(i => i.classList.remove('disabled'));
     };
   });
