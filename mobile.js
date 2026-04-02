@@ -355,6 +355,8 @@
     L+' .card-icon{background:rgba(0,0,0,0.04)!important;border-color:rgba(0,0,0,0.08)!important;}' +
     L+' .card-icon svg path,'+L+' .card-icon svg rect,'+L+' .card-icon svg circle{stroke:var(--cyan)!important;}' +
     L+' .card-tag{color:var(--cyan)!important;border-color:rgba(14,116,144,0.2)!important;background:rgba(14,116,144,0.06)!important;}' +
+    L+' .model-link{color:var(--cyan)!important;border-color:rgba(14,116,144,0.25)!important;background:rgba(14,116,144,0.05)!important;}' +
+    L+' .model-link:hover{background:rgba(14,116,144,0.12)!important;border-color:rgba(14,116,144,0.4)!important;}' +
     L+' .footer{color:rgba(0,0,0,0.35)!important;}' +
 
     // === Group selection ===
