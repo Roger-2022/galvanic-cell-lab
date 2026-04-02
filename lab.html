@@ -1196,7 +1196,7 @@ function doRetry() {
 }
 
 // ══════════ Activity Series & Evaluation ══════════
-const ACTIVITY = { Zn: 4, Fe: 3, Cu: 1, C: 1, glass: 0 };
+const ACTIVITY = { Zn: 4, Fe: 3, Cu: 2, C: 1, glass: 0 };
 const CONDUCTIVE = { Zn: true, Fe: true, Cu: true, C: true, glass: false };
 const ELECTRODE_NAME = { Fe: '铁片', Cu: '铜片', Zn: '锌片', C: '石墨棒', glass: '玻璃棒' };
 
@@ -1227,13 +1227,7 @@ function evaluateDesignV2(neg, pos, sol) {
     return result;
   }
 
-  // Same activity level (Cu vs C)
-  if (ACTIVITY[neg] === ACTIVITY[pos]) {
-    result.task1Reason = 'G表不偏转';
-    return result;
-  }
-
-  // H2SO4 + no Fe/Zn → no reaction
+  // H2SO4 + no Fe/Zn → no reaction (Cu and C don't react with dilute H2SO4)
   if (sol === 'H2SO4') {
     const hasFe = (neg === 'Fe' || pos === 'Fe');
     const hasZn = (neg === 'Zn' || pos === 'Zn');
