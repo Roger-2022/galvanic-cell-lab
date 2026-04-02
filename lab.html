@@ -871,7 +871,7 @@
       </div>
 
       <div class="submit-area">
-        <button class="submit-btn secondary" onclick="resetChoices()">重置选择</button>
+        <button class="submit-btn secondary" id="resetBtn" onclick="resetChoices()">重置选择</button>
         <button class="submit-btn primary" id="submitBtn" onclick="submitDesign()" disabled>提交方案</button>
       </div>
 
@@ -1188,6 +1188,10 @@ function resetChoices() {
 }
 
 function doRetry() {
+  document.getElementById('resetBtn').disabled = false;
+  // Unlock slots and materials
+  document.querySelectorAll('.drop-slot').forEach(s => s.style.pointerEvents = '');
+  document.querySelectorAll('.material-item').forEach(i => i.style.pointerEvents = '');
   resetChoices();
 }
 
@@ -1426,6 +1430,10 @@ function startInlineCooldown() {
 
   el.classList.add('active');
   submitBtn.disabled = true;
+  document.getElementById('resetBtn').disabled = true;
+  // Lock all slots during cooldown
+  document.querySelectorAll('.drop-slot').forEach(s => s.style.pointerEvents = 'none');
+  document.querySelectorAll('.material-item').forEach(i => i.style.pointerEvents = 'none');
 
   let remaining = CONFIG.cooldownSeconds;
   num.textContent = remaining;
