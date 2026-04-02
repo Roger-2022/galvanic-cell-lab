@@ -498,51 +498,75 @@
     line-height: 1.5;
   }
 
-  /* ── Cooldown overlay ── */
-  .cooldown-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(8,12,22,0.85);
+  /* ── Inline result bar (above circuit diagram) ── */
+  .inline-result {
     display: none;
-    flex-direction: column;
+    gap: 0.8rem;
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    background: rgba(15,20,35,0.7);
+    border: 1px solid var(--border);
+    margin-bottom: 0.5rem;
     align-items: center;
     justify-content: center;
-    z-index: 20;
-    backdrop-filter: blur(5px);
+    flex-wrap: wrap;
+    animation: fadeSlideIn 0.3s ease-out;
   }
+  .inline-result.active { display: flex; }
+  .inline-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.78rem;
+  }
+  .inline-result-icon {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 700; flex-shrink: 0;
+  }
+  .inline-result-icon.pass { background: rgba(92,184,92,0.15); color: var(--green); border: 1.5px solid rgba(92,184,92,0.3); }
+  .inline-result-icon.fail { background: rgba(217,83,79,0.15); color: var(--red); border: 1.5px solid rgba(217,83,79,0.3); }
+  .inline-result-icon.partial { background: rgba(240,173,78,0.15); color: #f0ad4e; border: 1.5px solid rgba(240,173,78,0.3); }
 
-  .cooldown-overlay.active { display: flex; }
-
-  .cooldown-timer {
-    font-size: 3.5rem;
+  /* ── Inline cooldown (replaces fullscreen overlay) ── */
+  .inline-cooldown {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 8px;
+    margin-top: 0.4rem;
+  }
+  .inline-cooldown.active { display: flex; }
+  .inline-cooldown-num {
+    font-size: 1.3rem;
     font-weight: 700;
     color: var(--gold);
     font-variant-numeric: tabular-nums;
-  }
-
-  .cooldown-msg {
-    font-size: 0.95rem;
-    color: var(--text-dim);
-    margin-top: 0.8rem;
+    min-width: 2ch;
     text-align: center;
-    max-width: 320px;
-    line-height: 1.6;
   }
-
-  .cooldown-progress {
-    width: 200px;
+  .inline-cooldown-bar {
+    flex: 1;
+    max-width: 140px;
     height: 3px;
     background: rgba(255,255,255,0.08);
     border-radius: 2px;
-    margin-top: 1.5rem;
     overflow: hidden;
   }
-
-  .cooldown-progress-bar {
+  .inline-cooldown-fill {
     height: 100%;
     background: var(--gold);
     border-radius: 2px;
     transition: width 1s linear;
+  }
+  .inline-cooldown-text {
+    font-size: 0.72rem;
+    color: var(--text-dim);
   }
 
   /* ── Task card ── */
@@ -614,92 +638,9 @@
     line-height: 1.6;
   }
 
-  /* ── Result overlay (replaces success overlay) ── */
-  .result-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(8,12,22,0.88);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 25;
-    backdrop-filter: blur(8px);
-  }
-  .result-overlay.active { display: flex; }
-
-  .result-card {
-    background: rgba(15,20,35,0.95);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 1.6rem 1.8rem;
-    max-width: 420px;
-    width: 90%;
-    animation: fadeSlideIn 0.4s ease-out;
-  }
-
   @keyframes fadeSlideIn {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
-  }
-
-  .result-task {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 0.8rem 0;
-  }
-  .result-task + .result-task {
-    border-top: 1px solid var(--border);
-  }
-
-  .result-task-icon {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.9rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-  }
-  .result-task-icon.pass {
-    background: rgba(92,184,92,0.15);
-    color: var(--green);
-    border: 1.5px solid rgba(92,184,92,0.3);
-  }
-  .result-task-icon.fail {
-    background: rgba(217,83,79,0.15);
-    color: var(--red);
-    border: 1.5px solid rgba(217,83,79,0.3);
-  }
-  .result-task-icon.partial {
-    background: rgba(240,173,78,0.15);
-    color: #f0ad4e;
-    border: 1.5px solid rgba(240,173,78,0.3);
-  }
-
-  .result-task-title {
-    font-size: 0.85rem;
-    font-weight: 600;
-  }
-  .result-task-desc {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    margin-top: 0.2rem;
-    line-height: 1.55;
-  }
-
-  .result-hint {
-    margin-top: 0.8rem;
-    padding: 0.7rem 0.9rem;
-    background: rgba(201,168,76,0.06);
-    border: 1px solid rgba(201,168,76,0.15);
-    border-radius: 8px;
-    font-size: 0.78rem;
-    color: var(--gold);
-    line-height: 1.6;
   }
 
   .result-actions {
@@ -823,25 +764,12 @@
           <div class="mat-icon solution" style="opacity:0.5">醇</div>
           <div class="mat-info"><div class="mat-name">无水乙醇</div></div>
         </div>
-        <div class="material-item" data-type="solution" data-value="water" onclick="selectMaterial(this, 'solution')">
-          <div class="mat-icon solution" style="opacity:0.5">H₂O</div>
-          <div class="mat-info"><div class="mat-name">蒸馏水</div></div>
-        </div>
       </div>
     </div>
 
     <!-- Center: Circuit Diagram -->
     <div class="circuit-area">
-      <!-- Cooldown overlay -->
-      <div class="cooldown-overlay" id="cooldownOverlay">
-        <div class="cooldown-timer" id="cooldownTimer">30</div>
-        <div class="cooldown-msg">请思考：上次的方案为什么不能工作？<br/>冷却结束后可再次尝试</div>
-        <div class="cooldown-progress">
-          <div class="cooldown-progress-bar" id="cooldownBar"></div>
-        </div>
-      </div>
-
-      <!-- Failed overlay -->
+      <!-- Failed overlay (only for max attempts reached) -->
       <div class="failed-overlay" id="failedOverlay">
         <div class="failed-icon">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#d9534f" stroke-width="2" stroke-linecap="round"/></svg>
@@ -850,27 +778,15 @@
         <div class="failed-msg">你的小组已用完全部尝试次数。请等待教师指导后重置。</div>
       </div>
 
-      <!-- Result overlay -->
-      <div class="result-overlay" id="resultOverlay">
-        <div class="result-card">
-          <div class="result-task">
-            <div class="result-task-icon fail" id="task1Icon">✗</div>
-            <div>
-              <div class="result-task-title">任务一：利用原电池装置产生电能</div>
-              <div class="result-task-desc" id="task1Desc">—</div>
-            </div>
-          </div>
-          <div class="result-task">
-            <div class="result-task-icon fail" id="task2Icon">✗</div>
-            <div>
-              <div class="result-task-title">任务二：基于给定反应设计原电池</div>
-              <div class="result-task-desc" id="task2Desc">—</div>
-            </div>
-          </div>
-          <div class="result-hint" id="resultHint" style="display:none;"></div>
-          <div class="result-actions">
-            <button class="result-btn" id="resultCloseBtn">继续实验</button>
-          </div>
+      <!-- Inline task result bar (above diagram) -->
+      <div class="inline-result" id="inlineResult">
+        <div class="inline-result-item">
+          <div class="inline-result-icon fail" id="inlineT1Icon">✗</div>
+          <span id="inlineT1Text">任务一：—</span>
+        </div>
+        <div class="inline-result-item">
+          <div class="inline-result-icon fail" id="inlineT2Icon">✗</div>
+          <span id="inlineT2Text">任务二：—</span>
         </div>
       </div>
 
@@ -918,6 +834,18 @@
           <rect x="85" y="60" width="30" height="220" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4"/>
           <!-- Right electrode slot guide -->
           <rect x="345" y="60" width="30" height="220" rx="3" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Electron flow arrows (hidden until G-meter deflects) -->
+          <g id="electronArrowRight" style="display:none;">
+            <!-- e⁻ → on left wire (going up from neg electrode) -->
+            <text x="85" y="15" fill="rgba(92,196,196,0.8)" font-size="11" font-family="sans-serif">e⁻ →</text>
+            <!-- e⁻ → on right wire (going down to pos electrode) -->
+            <text x="355" y="15" fill="rgba(92,196,196,0.8)" font-size="11" font-family="sans-serif">→ e⁻</text>
+          </g>
+          <g id="electronArrowLeft" style="display:none;">
+            <!-- Reversed: e⁻ flows right to left -->
+            <text x="340" y="15" fill="rgba(92,196,196,0.8)" font-size="11" font-family="sans-serif">e⁻ ←</text>
+            <text x="85" y="15" fill="rgba(92,196,196,0.8)" font-size="11" font-family="sans-serif">← e⁻</text>
+          </g>
         </svg>
 
         <!-- Drop slots -->
@@ -943,6 +871,15 @@
       <div class="submit-area">
         <button class="submit-btn secondary" onclick="resetChoices()">重置选择</button>
         <button class="submit-btn primary" id="submitBtn" onclick="submitDesign()" disabled>提交方案</button>
+      </div>
+
+      <!-- Inline cooldown (below submit, visible during cooldown) -->
+      <div class="inline-cooldown" id="inlineCooldown">
+        <div class="inline-cooldown-num" id="cooldownNum">30</div>
+        <div class="inline-cooldown-bar">
+          <div class="inline-cooldown-fill" id="cooldownFill"></div>
+        </div>
+        <div class="inline-cooldown-text">冷却中</div>
       </div>
     </div>
 
@@ -1091,7 +1028,17 @@ async function enterLab(groupId) {
   }
 
   if (data.success) {
-    showSuccessOverlay(data);
+    // Already succeeded — show inline result as "all pass" and enable exploration
+    const bar = document.getElementById('inlineResult');
+    const t1Icon = document.getElementById('inlineT1Icon');
+    const t2Icon = document.getElementById('inlineT2Icon');
+    const t1Text = document.getElementById('inlineT1Text');
+    const t2Text = document.getElementById('inlineT2Text');
+    t1Icon.textContent = '✓'; t1Icon.className = 'inline-result-icon pass';
+    t2Icon.textContent = '✓'; t2Icon.className = 'inline-result-icon pass';
+    t1Text.textContent = '任务一：已完成';
+    t2Text.textContent = '任务二：已完成（自由探索模式）';
+    bar.classList.add('active');
   } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
     document.getElementById('failedOverlay').classList.add('active');
   }
@@ -1108,9 +1055,9 @@ function backToGroup() {
   document.getElementById('labScreen').classList.remove('active');
   document.getElementById('groupScreen').classList.add('active');
   // Clear overlays
-  document.getElementById('successOverlay')?.classList.remove('active');
+  document.getElementById('inlineResult')?.classList.remove('active');
   document.getElementById('failedOverlay')?.classList.remove('active');
-  document.getElementById('cooldownOverlay')?.classList.remove('active');
+  document.getElementById('inlineCooldown')?.classList.remove('active');
   currentGroup = null;
   initGroupScreen();
 }
@@ -1354,7 +1301,7 @@ async function submitDesign() {
 
   // Animate G-meter, then show result popup
   animateGmeter(result.deflection, () => {
-    showResultPopup(result, data, isExploring);
+    showInlineResult(result, data, isExploring);
   });
 }
 
@@ -1363,6 +1310,10 @@ function animateGmeter(direction, callback) {
   const needle = document.getElementById('gmeterNeedle');
   needle.style.animation = 'none';
   needle.offsetHeight; // force reflow
+
+  // Show electron direction arrows
+  document.getElementById('electronArrowRight').style.display = direction === 'right' ? 'block' : 'none';
+  document.getElementById('electronArrowLeft').style.display = direction === 'left' ? 'block' : 'none';
 
   let duration;
   if (direction === 'right') {
@@ -1386,101 +1337,81 @@ function resetGmeter() {
   needle.style.animation = 'none';
   needle.offsetHeight;
   needle.style.transform = 'rotate(0deg)';
+  // Hide electron arrows
+  document.getElementById('electronArrowRight').style.display = 'none';
+  document.getElementById('electronArrowLeft').style.display = 'none';
 }
 
-// ══════════ Result Popup ══════════
-function showResultPopup(result, data, isExploring) {
-  const overlay = document.getElementById('resultOverlay');
-  const t1Icon = document.getElementById('task1Icon');
-  const t2Icon = document.getElementById('task2Icon');
-  const t1Desc = document.getElementById('task1Desc');
-  const t2Desc = document.getElementById('task2Desc');
-  const hintEl = document.getElementById('resultHint');
-  const closeBtn = document.getElementById('resultCloseBtn');
+// ══════════ Inline Result + Cooldown ══════════
+function showInlineResult(result, data, isExploring) {
+  const bar = document.getElementById('inlineResult');
+  const t1Icon = document.getElementById('inlineT1Icon');
+  const t2Icon = document.getElementById('inlineT2Icon');
+  const t1Text = document.getElementById('inlineT1Text');
+  const t2Text = document.getElementById('inlineT2Text');
 
+  // Task 1
   t1Icon.textContent = result.task1 ? '✓' : '✗';
-  t1Icon.className = 'result-task-icon ' + (result.task1 ? 'pass' : 'fail');
-  t1Desc.textContent = result.task1Reason;
+  t1Icon.className = 'inline-result-icon ' + (result.task1 ? 'pass' : 'fail');
+  t1Text.textContent = '任务一：' + result.task1Reason;
 
+  // Task 2
   if (result.task2Status === 'pass') {
     t2Icon.textContent = '✓';
-    t2Icon.className = 'result-task-icon pass';
+    t2Icon.className = 'inline-result-icon pass';
   } else if (result.task2Status === 'partial') {
     t2Icon.textContent = '?';
-    t2Icon.className = 'result-task-icon partial';
+    t2Icon.className = 'inline-result-icon partial';
   } else {
     t2Icon.textContent = '✗';
-    t2Icon.className = 'result-task-icon fail';
+    t2Icon.className = 'inline-result-icon fail';
   }
-  t2Desc.textContent = result.task2Reason;
+  t2Text.textContent = '任务二：' + result.task2Reason;
 
-  if (result.hint) {
-    hintEl.textContent = result.hint;
-    hintEl.style.display = 'block';
-  } else {
-    hintEl.style.display = 'none';
-  }
+  // Show the bar
+  bar.classList.add('active');
 
-  if (isExploring) {
-    // Exploration mode after success — just show results, no cooldown
-    closeBtn.textContent = '继续探索';
-    closeBtn.className = 'result-btn';
-    // Add exploration badge
-    hintEl.textContent = '你已完成全部任务！现在是自由探索模式，可以尝试不同组合观察G表反应，不计入实验次数。';
-    hintEl.style.display = 'block';
-    hintEl.style.borderColor = 'rgba(92,196,196,0.2)';
-    hintEl.style.background = 'rgba(92,196,196,0.06)';
-    hintEl.style.color = 'var(--cyan)';
-  } else if (result.task1 && result.task2) {
-    closeBtn.textContent = '实验完成！继续探索';
-    closeBtn.className = 'result-btn success-btn';
+  // Success → mark correct, no cooldown
+  if (result.task1 && result.task2) {
     document.querySelectorAll('.drop-slot').forEach(s => {
       s.classList.remove('error');
       s.classList.add('correct');
     });
-  } else {
-    closeBtn.textContent = '继续实验';
-    closeBtn.className = 'result-btn';
   }
 
-  overlay.classList.add('active');
-
-  closeBtn.onclick = () => {
-    overlay.classList.remove('active');
-    // Reset hint style for next time
-    hintEl.style.borderColor = '';
-    hintEl.style.background = '';
-    hintEl.style.color = '';
-    resetChoices();
+  // Decide next action (after G-meter animation settles)
+  setTimeout(() => {
     if (isExploring || (result.task1 && result.task2)) {
-      // Success or exploring — no cooldown, can continue
+      // No cooldown — can continue immediately
     } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
       document.getElementById('failedOverlay').classList.add('active');
     } else {
-      startCooldown();
+      startInlineCooldown();
     }
-  };
+  }, 1500);
 }
 
-// ══════════ Cooldown ══════════
-function startCooldown() {
-  const overlay = document.getElementById('cooldownOverlay');
-  const timer = document.getElementById('cooldownTimer');
-  const bar = document.getElementById('cooldownBar');
-  overlay.classList.add('active');
+function startInlineCooldown() {
+  const el = document.getElementById('inlineCooldown');
+  const num = document.getElementById('cooldownNum');
+  const fill = document.getElementById('cooldownFill');
+  const submitBtn = document.getElementById('submitBtn');
+
+  el.classList.add('active');
+  submitBtn.disabled = true;
 
   let remaining = CONFIG.cooldownSeconds;
-  timer.textContent = remaining;
-  bar.style.width = '100%';
+  num.textContent = remaining;
+  fill.style.width = '100%';
 
   const interval = setInterval(() => {
     remaining--;
-    timer.textContent = remaining;
-    bar.style.width = `${(remaining / CONFIG.cooldownSeconds) * 100}%`;
+    num.textContent = remaining;
+    fill.style.width = `${(remaining / CONFIG.cooldownSeconds) * 100}%`;
 
     if (remaining <= 0) {
       clearInterval(interval);
-      overlay.classList.remove('active');
+      el.classList.remove('active');
       resetChoices();
     }
   }, 1000);
@@ -1604,9 +1535,9 @@ function renderHistory(data) {
               document.getElementById('labScreen')?.classList.remove('active');
               document.getElementById('groupScreen')?.classList.add('active');
               // Clear overlays
-              document.getElementById('successOverlay')?.classList.remove('active');
+              document.getElementById('inlineResult')?.classList.remove('active');
               document.getElementById('failedOverlay')?.classList.remove('active');
-              document.getElementById('cooldownOverlay')?.classList.remove('active');
+              document.getElementById('inlineCooldown')?.classList.remove('active');
               initGroupScreen();
               alert('教师已重置实验，请重新选择组别。');
             }

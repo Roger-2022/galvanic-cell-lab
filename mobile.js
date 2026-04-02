@@ -217,4 +217,67 @@
     '<div style="font-size:0.75rem;color:rgba(92,196,196,0.6);margin-top:1rem;">如使用平板，请横屏操作</div>' +
     '</div>';
   document.body.appendChild(ol);
+
+  // ── Light/Dark mode toggle ──
+  var ts = document.createElement('style');
+  ts.textContent =
+    // Light mode overrides
+    'body.light-mode{' +
+      '--bg:#f5f6f8;--bg-panel:rgba(0,0,0,0.03);--border:rgba(0,0,0,0.1);' +
+      '--text:#1a1a2e;--text-dim:rgba(0,0,0,0.5);' +
+      '--blue:#2d6bc4;--cyan:#1a9898;--green:#3a8a3a;--red:#c0392b;--gold:#b8860b;' +
+      'background:var(--bg)!important;color:var(--text)!important;' +
+    '}' +
+    // Specific overrides for common dark backgrounds
+    'body.light-mode .topbar,body.light-mode .lab-topbar{background:rgba(255,255,255,0.9)!important;border-bottom:1px solid rgba(0,0,0,0.08)!important;}' +
+    'body.light-mode .app{background:var(--bg)!important;}' +
+    'body.light-mode .material-tray,body.light-mode .history-panel{background:rgba(255,255,255,0.6)!important;}' +
+    'body.light-mode .task-card{background:rgba(45,107,196,0.06)!important;border-color:rgba(45,107,196,0.15)!important;}' +
+    'body.light-mode .material-item{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.08)!important;}' +
+    'body.light-mode .material-item.selected{border-color:var(--cyan)!important;background:rgba(26,152,152,0.08)!important;}' +
+    'body.light-mode .circuit-area{background:rgba(255,255,255,0.5)!important;}' +
+    'body.light-mode .drop-slot{border-color:rgba(0,0,0,0.15)!important;background:rgba(255,255,255,0.5)!important;}' +
+    'body.light-mode .history-item{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.08)!important;}' +
+    'body.light-mode .ctrl-btn{background:rgba(0,0,0,0.04)!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;}' +
+    'body.light-mode .submit-btn.primary{background:linear-gradient(135deg,#2d6bc4,#1a9898)!important;}' +
+    'body.light-mode .submit-btn.secondary{background:rgba(0,0,0,0.04)!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;}' +
+    'body.light-mode .detail-panel{background:rgba(255,255,255,0.95)!important;border-color:rgba(0,0,0,0.1)!important;}' +
+    'body.light-mode .inline-result{background:rgba(255,255,255,0.85)!important;border-color:rgba(0,0,0,0.1)!important;}' +
+    'body.light-mode .inline-cooldown{background:rgba(184,134,11,0.08)!important;border-color:rgba(184,134,11,0.2)!important;}' +
+    // Index page
+    'body.light-mode .card{background:rgba(255,255,255,0.7)!important;border-color:rgba(0,0,0,0.08)!important;}' +
+    'body.light-mode .card:hover{border-color:var(--cyan)!important;background:rgba(255,255,255,0.9)!important;}' +
+    'body.light-mode .footer{color:rgba(0,0,0,0.4)!important;}' +
+    // Group selection
+    'body.light-mode .group-btn{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;}' +
+    'body.light-mode .group-btn:hover{border-color:var(--cyan)!important;}' +
+    // Failed overlay
+    'body.light-mode .failed-overlay{background:rgba(245,246,248,0.95)!important;}' +
+    // Theme toggle button
+    '#themeToggle{position:fixed;bottom:1rem;left:1rem;z-index:998;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1rem;transition:all .3s;}' +
+    '#themeToggle:hover{border-color:rgba(255,255,255,0.3);background:rgba(0,0,0,0.5);}' +
+    'body.light-mode #themeToggle{background:rgba(255,255,255,0.8);border-color:rgba(0,0,0,0.1);color:rgba(0,0,0,0.7);}' +
+    'body.light-mode #themeToggle:hover{background:rgba(255,255,255,1);border-color:rgba(0,0,0,0.2);}';
+  document.head.appendChild(ts);
+
+  // Theme toggle button
+  var tb = document.createElement('button');
+  tb.id = 'themeToggle';
+  tb.innerHTML = '☀';
+  tb.title = '切换浅色/深色模式';
+  tb.onclick = function() {
+    document.body.classList.toggle('light-mode');
+    var isLight = document.body.classList.contains('light-mode');
+    tb.innerHTML = isLight ? '🌙' : '☀';
+    try { localStorage.setItem('galvanic_theme', isLight ? 'light' : 'dark'); } catch(e) {}
+  };
+  document.body.appendChild(tb);
+
+  // Restore saved theme
+  try {
+    if (localStorage.getItem('galvanic_theme') === 'light') {
+      document.body.classList.add('light-mode');
+      tb.innerHTML = '🌙';
+    }
+  } catch(e) {}
 })();
