@@ -272,6 +272,18 @@
     animation: blink 2s ease-in-out infinite;
   }
   @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+  /* ── Light mode: modal + overlay ── */
+  body.light-mode .modal-overlay { background: rgba(0,0,0,0.25); }
+  body.light-mode .modal { background: #fff !important; color: #1a1a2e; border-color: rgba(0,0,0,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+  body.light-mode .modal-title { color: #1a1a2e; }
+  body.light-mode .modal-close { border-color: rgba(0,0,0,0.1); color: rgba(0,0,0,0.4); }
+  body.light-mode .modal-close:hover { background: rgba(0,0,0,0.04); color: #1a1a2e; }
+  body.light-mode .modal-attempt { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.08); color: #1a1a2e; }
+  body.light-mode .modal-attempt.success { border-color: rgba(22,163,74,0.3); }
+  body.light-mode .modal-attempt.partial { border-color: rgba(180,83,9,0.3); }
+  body.light-mode .modal-attempt .attempt-header { color: #1a1a2e; }
+  body.light-mode .modal-attempt div { color: #1a1a2e; }
 </style>
 </head>
 <body>
