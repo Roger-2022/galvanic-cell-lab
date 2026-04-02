@@ -224,22 +224,15 @@
     border-color: rgba(92,196,196,0.4);
   }
 
-  .card-title-row {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    position: relative; z-index: 1;
-  }
-
   .card-tag {
     display: inline-block;
-    padding: 0.2rem 0.7rem;
+    margin-top: auto;
+    padding: 0.3rem 1rem;
     border-radius: 20px;
-    font-size: 0.6rem;
-    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
     position: relative; z-index: 1;
     font-weight: 500;
-    flex-shrink: 0;
   }
 
   .card--model .card-tag {
@@ -312,12 +305,13 @@
           <circle cx="11" cy="19" r="2" fill="#5cc4c4" opacity="0.7"/>
         </svg>
       </div>
-      <div class="card-title-row"><span class="card-title">微观模型讲解</span><span class="card-tag">助教</span></div>
+      <div class="card-title">微观模型讲解</div>
       <div class="card-desc">交互式微观动画，逐步拆解原电池四大构成要素</div>
       <div style="display:flex;gap:0.6rem;margin-top:1.2rem;position:relative;z-index:1;width:100%;">
         <a href="/model" class="model-link">氢氧燃料电池</a>
         <a href="/model-fecu" class="model-link">铁-铜原电池</a>
       </div>
+      <div class="card-tag">助教</div>
     </div>
 
     <a href="/lab" class="card card--lab">
@@ -330,8 +324,9 @@
           <circle cx="16" cy="18" r="1" fill="#4a90d9" opacity="0.5"/>
         </svg>
       </div>
-      <div class="card-title-row"><span class="card-title">虚拟实验室</span><span class="card-tag">助学</span></div>
+      <div class="card-title">虚拟实验室</div>
       <div class="card-desc">小组协作设计原电池，观察灵敏电流计偏转，反思迭代优化</div>
+      <div class="card-tag">助学</div>
     </a>
 
     <a href="/dashboard" class="card card--dashboard">
@@ -345,8 +340,9 @@
           <circle cx="22" cy="10" r="1.5" fill="#c9a84c" opacity="0.5"/>
         </svg>
       </div>
-      <div class="card-title-row"><span class="card-title">教师监控面板</span><span class="card-tag">助评</span></div>
+      <div class="card-title">教师监控面板</div>
       <div class="card-desc">实时查看各小组进度，管理尝试次数与冷却时间，一键重置</div>
+      <div class="card-tag">助评</div>
     </a>
   </div>
 </div>

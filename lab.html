@@ -881,8 +881,10 @@
         <div class="inline-cooldown-bar">
           <div class="inline-cooldown-fill" id="cooldownFill"></div>
         </div>
-        <div class="inline-cooldown-text">冷却中</div>
+        <div class="inline-cooldown-text" id="cooldownText">冷却中</div>
       </div>
+      <!-- "重新设计" button (shown after cooldown ends, student clicks to clear) -->
+      <button class="submit-btn secondary" id="retryBtn" style="display:none;margin-top:0.5rem;" onclick="doRetry()">重新设计方案</button>
     </div>
 
     <!-- Right: History -->
@@ -1170,8 +1172,14 @@ function resetChoices() {
   });
   document.querySelectorAll('.material-item').forEach(i => i.classList.remove('selected'));
   document.getElementById('submitBtn').disabled = true;
+  document.getElementById('retryBtn').style.display = 'none';
+  document.getElementById('inlineResult').classList.remove('active');
   activeSlot = null;
   resetGmeter();
+}
+
+function doRetry() {
+  resetChoices();
 }
 
 // ══════════ Activity Series & Evaluation ══════════
@@ -1418,7 +1426,8 @@ function startInlineCooldown() {
     if (remaining <= 0) {
       clearInterval(interval);
       el.classList.remove('active');
-      resetChoices();
+      // Don't auto-reset — show "重新设计" button so student can review their failed design
+      document.getElementById('retryBtn').style.display = 'inline-block';
     }
   }, 1000);
 }
