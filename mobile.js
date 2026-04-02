@@ -7,6 +7,13 @@
  * 3. 2D 页面用缩写类名 .ds/.df/.dk/.hl，3D 页面用全名 .detail-section 等，两套都覆盖
  */
 (function() {
+  // Restore theme FIRST (before any rendering) to prevent flash
+  try {
+    if (localStorage.getItem('galvanic_theme') === 'light') {
+      document.body.classList.add('light-mode');
+    }
+  } catch(e) {}
+
   // Fix viewport meta
   var vp = document.querySelector('meta[name="viewport"]');
   if (vp) vp.content = 'width=device-width,initial-scale=1.0,minimum-scale=1,maximum-scale=3,viewport-fit=cover';
@@ -364,6 +371,18 @@
     L+' .group-name{color:var(--text)!important;}' +
     L+' .config-panel{background:rgba(255,255,255,0.97)!important;border-color:rgba(0,0,0,0.1)!important;}' +
     L+' .question-item{background:rgba(255,255,255,0.9)!important;border-color:rgba(0,0,0,0.08)!important;}' +
+    // Dashboard questions panel — override inline white text
+    L+' #questionsPanel{background:rgba(0,0,0,0.02)!important;border-color:rgba(0,0,0,0.06)!important;}' +
+    L+' #questionsList div{color:var(--text)!important;}' +
+    L+' #questionsList div div{color:var(--text)!important;}' +
+    L+' #questionsList strong{color:var(--text)!important;}' +
+    L+' #questionsList span{color:var(--text-dim)!important;}' +
+    // Dashboard action buttons
+    L+' .action-btn{background:rgba(255,255,255,0.9)!important;border-color:rgba(0,0,0,0.12)!important;color:var(--text)!important;}' +
+    L+' .action-btn.danger{color:var(--red)!important;border-color:rgba(220,38,38,0.2)!important;}' +
+    // Dashboard config panel inputs
+    L+' .config-panel input,'+L+' .config-panel select{background:rgba(255,255,255,0.9)!important;border-color:rgba(0,0,0,0.12)!important;color:var(--text)!important;}' +
+    L+' .config-panel label{color:var(--text)!important;}' +
 
     // === Failed overlay ===
     L+' .failed-overlay{background:rgba(245,246,248,0.97)!important;}' +
@@ -421,10 +440,9 @@
   tb.onclick = toggleTheme;
   document.body.appendChild(tb);
 
-  // Restore saved theme
+  // Update toggle button labels if light mode (class already added at top)
   try {
-    if (localStorage.getItem('galvanic_theme') === 'light') {
-      document.body.classList.add('light-mode');
+    if (document.body.classList.contains('light-mode')) {
       document.querySelectorAll('.theme-toggle-ctrl').forEach(function(el) {
         el.innerHTML = '🌙 切换深色模式';
       });
