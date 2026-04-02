@@ -1015,11 +1015,22 @@ async function enterLab(groupId) {
   document.getElementById('labScreen').classList.add('active');
   document.getElementById('groupBadge').textContent = `第 ${groupId} 组`;
 
-  // Always fetch fresh data from server
-  const data = await fetchGroupData(groupId);
+  // Show UI immediately with local cache, then refresh from server
+  let data = getGroupData(groupId);
   updateLabUI(data);
   renderHistory(data);
   resetChoices();
+
+  // Background: fetch fresh data from server and update if changed
+  if (useServer) {
+    fetchGroupData(groupId).then(fresh => {
+      if (fresh && JSON.stringify(fresh) !== JSON.stringify(data)) {
+        data = fresh;
+        updateLabUI(data);
+        renderHistory(data);
+      }
+    });
+  }
 
   // Admin keeps "切换组"; students get "返回首页"
   var backBtn = document.querySelector('.back-btn[onclick="backToGroup()"]');
@@ -1300,14 +1311,13 @@ async function submitDesign() {
   // Disable submit during animation
   document.getElementById('submitBtn').disabled = true;
 
-  // Animate G-meter, then show result popup
-  animateGmeter(result.deflection, () => {
-    showInlineResult(result, data, isExploring);
-  });
+  // Animate G-meter AND show result simultaneously
+  animateGmeter(result.deflection);
+  showInlineResult(result, data, isExploring);
 }
 
 // ══════════ G-meter Animation ══════════
-function animateGmeter(direction, callback) {
+function animateGmeter(direction) {
   const needle = document.getElementById('gmeterNeedle');
   needle.style.animation = 'none';
   needle.offsetHeight; // force reflow
@@ -1316,21 +1326,13 @@ function animateGmeter(direction, callback) {
   document.getElementById('electronArrowRight').style.display = direction === 'right' ? 'block' : 'none';
   document.getElementById('electronArrowLeft').style.display = direction === 'left' ? 'block' : 'none';
 
-  let duration;
   if (direction === 'right') {
     needle.style.animation = 'needleRight 2.5s ease-out forwards';
-    duration = 3500;
   } else if (direction === 'left') {
     needle.style.animation = 'needleLeft 2.5s ease-out forwards';
-    duration = 3500;
   } else {
     needle.style.animation = 'needleNone 2s ease-in-out forwards';
-    duration = 2500;
   }
-
-  setTimeout(() => {
-    if (callback) callback();
-  }, duration);
 }
 
 function resetGmeter() {
@@ -1380,16 +1382,14 @@ function showInlineResult(result, data, isExploring) {
     });
   }
 
-  // Decide next action (after G-meter animation settles)
-  setTimeout(() => {
-    if (isExploring || (result.task1 && result.task2)) {
-      // No cooldown — can continue immediately
-    } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
-      document.getElementById('failedOverlay').classList.add('active');
-    } else {
-      startInlineCooldown();
-    }
-  }, 1500);
+  // Decide next action — immediate, no delay
+  if (isExploring || (result.task1 && result.task2)) {
+    // No cooldown — can continue immediately
+  } else if (data.attemptsUsed >= CONFIG.maxAttempts) {
+    document.getElementById('failedOverlay').classList.add('active');
+  } else {
+    startInlineCooldown();
+  }
 }
 
 function startInlineCooldown() {
