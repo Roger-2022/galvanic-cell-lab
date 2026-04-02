@@ -257,10 +257,10 @@
 
   .circuit-diagram {
     position: relative;
-    width: 90%;
-    max-width: 620px;
+    width: 95%;
+    max-width: 720px;
     aspect-ratio: 460 / 380;
-    max-height: calc(100dvh - 200px);
+    max-height: calc(100dvh - 180px);
   }
   @media (max-height: 500px) {
     .circuit-diagram { width: auto; height: calc(100dvh - 100px); }
@@ -594,10 +594,11 @@
 
   .task-card .reaction {
     font-family: 'Times New Roman', serif;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     color: var(--cyan);
     text-align: center;
     margin: 0.5rem 0;
+    white-space: nowrap;
   }
 
   /* ── Failed overlay ── */
@@ -1374,12 +1375,16 @@ function showInlineResult(result, data, isExploring) {
   // Show the bar
   bar.classList.add('active');
 
-  // Success → mark correct, no cooldown
+  // Success → mark correct, show exploration hint
   if (result.task1 && result.task2) {
     document.querySelectorAll('.drop-slot').forEach(s => {
       s.classList.remove('error');
       s.classList.add('correct');
     });
+    if (!isExploring) {
+      t1Text.textContent = '任务一：已完成';
+      t2Text.textContent = '任务二：已完成 — 进入自由探索模式！';
+    }
   }
 
   // Decide next action — immediate, no delay

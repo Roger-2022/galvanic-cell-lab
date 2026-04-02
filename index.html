@@ -465,11 +465,12 @@ class ChemParticle {
     if (this.y < -40) this.reset(false);
   }
   draw() {
+    const isLight = document.body.classList.contains('light-mode');
     ctx.save();
     ctx.translate(this.x, this.y);
     ctx.rotate(this.rotation);
-    ctx.globalAlpha = this.alpha;
-    ctx.strokeStyle = 'rgba(120,180,220,1)';
+    ctx.globalAlpha = isLight ? this.alpha * 3 : this.alpha;
+    ctx.strokeStyle = isLight ? 'rgba(37,99,235,1)' : 'rgba(120,180,220,1)';
     ctx.lineWidth = 1;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
@@ -495,9 +496,12 @@ class DotParticle {
     if (this.y < -10) this.reset(false);
   }
   draw() {
+    const isLight = document.body.classList.contains('light-mode');
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(${this.color},${this.alpha})`;
+    const c = isLight ? '37,99,235' : this.color;
+    const a = isLight ? this.alpha * 2.5 : this.alpha;
+    ctx.fillStyle = `rgba(${c},${a})`;
     ctx.fill();
   }
 }
