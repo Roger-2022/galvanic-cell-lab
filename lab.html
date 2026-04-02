@@ -1108,12 +1108,21 @@ function selectMaterial(el, slotType) {
 
 function openSlotSelector(slotType) {
   activeSlot = slotType;
-  // Highlight compatible materials
+  // Determine which material types are compatible with this slot
+  const isElectrodeSlot = (slotType === 'neg_electrode' || slotType === 'pos_electrode');
   document.querySelectorAll('.material-item').forEach(item => {
     item.classList.remove('selected');
-    // Remove previous click handlers and add new ones
     const newItem = item.cloneNode(true);
     item.parentNode.replaceChild(newItem, item);
+
+    const itemType = newItem.dataset.type; // 'cathode' (electrode) or 'solution'
+    const isElectrode = (itemType === 'cathode');
+    // Only allow compatible types: electrode → electrode slot, solution → solution slot
+    if (isElectrodeSlot !== isElectrode) {
+      newItem.classList.add('disabled');
+      newItem.onclick = null;
+      return;
+    }
 
     newItem.onclick = () => {
       choices[slotType] = {
@@ -1124,6 +1133,8 @@ function openSlotSelector(slotType) {
       updateMaterialHighlights();
       checkSubmitReady();
       activeSlot = null;
+      // Remove disabled state
+      document.querySelectorAll('.material-item').forEach(i => i.classList.remove('disabled'));
     };
   });
 
@@ -1464,7 +1475,7 @@ function renderHistory(data) {
         负极：${attempt.negName} &nbsp;|&nbsp; 正极：${attempt.posName} &nbsp;|&nbsp; 溶液：${attempt.solName}
       </div>
       <div style="font-size:0.7rem;color:var(--text-dim);margin-top:0.3rem;">
-        任务一${attempt.task1 ? '✓' : '✗'} &nbsp; 任务二${attempt.task2Status === 'pass' ? '✓' : attempt.task2Status === 'partial' ? '?' : '✗'} &nbsp; (${deflText})
+        任务一${attempt.task1 ? '✓' : '✗'} &nbsp; 任务二${(attempt.task2Status === 'pass' || (!attempt.task2Status && attempt.task2)) ? '✓' : attempt.task2Status === 'partial' ? '?' : '✗'} &nbsp; (${deflText})
       </div>
     `;
     list.appendChild(item);
