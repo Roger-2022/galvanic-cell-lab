@@ -1227,7 +1227,7 @@ function evaluateDesignV2(neg, pos, sol) {
     return result;
   }
 
-  // H2SO4 + no Fe/Zn → no reaction (Cu and C don't react with dilute H2SO4)
+  // H2SO4: only Fe/Zn react with acid → Cu-C in H2SO4 won't work
   if (sol === 'H2SO4') {
     const hasFe = (neg === 'Fe' || pos === 'Fe');
     const hasZn = (neg === 'Zn' || pos === 'Zn');
@@ -1236,6 +1236,7 @@ function evaluateDesignV2(neg, pos, sol) {
       return result;
     }
   }
+
 
   // ── If we get here → Task 1 passes (G表偏转) ──
   result.task1 = true;
