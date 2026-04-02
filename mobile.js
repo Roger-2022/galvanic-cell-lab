@@ -383,6 +383,18 @@
     // Dashboard config panel inputs
     L+' .config-panel input,'+L+' .config-panel select{background:rgba(255,255,255,0.9)!important;border-color:rgba(0,0,0,0.12)!important;color:var(--text)!important;}' +
     L+' .config-panel label{color:var(--text)!important;}' +
+    // Dashboard detail modal
+    L+' .modal-overlay{background:rgba(0,0,0,0.3)!important;}' +
+    L+' .modal{background:rgba(255,255,255,0.98)!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;}' +
+    L+' .modal-title{color:var(--text)!important;}' +
+    L+' .modal-close{border-color:rgba(0,0,0,0.1)!important;color:var(--text-dim)!important;}' +
+    L+' .modal-close:hover{background:rgba(0,0,0,0.04)!important;color:var(--text)!important;}' +
+    L+' .modal-attempt{background:rgba(0,0,0,0.02)!important;border-color:rgba(0,0,0,0.08)!important;color:var(--text)!important;}' +
+    L+' .modal-attempt.success{border-color:rgba(22,163,74,0.25)!important;}' +
+    L+' .modal-attempt.partial{border-color:rgba(180,83,9,0.25)!important;}' +
+    L+' .modal-attempt .attempt-header{color:var(--text)!important;}' +
+    L+' .modal-attempt div{color:var(--text)!important;}' +
+    L+' .modal-attempt span{color:var(--text-dim)!important;}' +
 
     // === Failed overlay ===
     L+' .failed-overlay{background:rgba(245,246,248,0.97)!important;}' +
