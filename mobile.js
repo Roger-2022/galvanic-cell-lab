@@ -406,6 +406,30 @@
     // === Q&A fab ===
     L+' #qFabBtn{background:linear-gradient(135deg,#2563eb,#0e7490)!important;box-shadow:0 2px 8px rgba(37,99,235,0.3)!important;}' +
 
+    // === Question Modal (#questionModal in lab.html) ===
+    L+' #questionModal{background:rgba(0,0,0,0.25)!important;}' +
+    L+' #questionModal>div{background:#fff!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;box-shadow:0 8px 32px rgba(0,0,0,0.12)!important;}' +
+    L+' #questionModal label{color:var(--text-dim)!important;}' +
+    L+' #questionModal input,'+L+' #questionModal textarea{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.12)!important;color:var(--text)!important;}' +
+    L+' #questionModal button#qClose{border-color:rgba(0,0,0,0.1)!important;color:rgba(0,0,0,0.4)!important;}' +
+    L+' #questionModal div[style*="border-bottom"]{border-color:rgba(0,0,0,0.08)!important;}' +
+
+    // === Admin Login Modal ===
+    L+' #adminLogin{background:rgba(0,0,0,0.25)!important;}' +
+    L+' #adminLogin>div{background:#fff!important;border-color:rgba(0,0,0,0.1)!important;color:var(--text)!important;box-shadow:0 8px 32px rgba(0,0,0,0.12)!important;}' +
+    L+' #adminLogin input{background:rgba(0,0,0,0.03)!important;border-color:rgba(0,0,0,0.12)!important;color:var(--text)!important;}' +
+
+    // === G-meter SVG in lab ===
+    L+' .gmeter-svg circle{stroke:rgba(0,0,0,0.15)!important;fill:rgba(0,0,0,0.02)!important;}' +
+    L+' .gmeter-svg circle[fill*="255,255,255,0.2"]{fill:rgba(0,0,0,0.12)!important;}' +
+    L+' .gmeter-svg path{stroke:rgba(0,0,0,0.08)!important;}' +
+    L+' .gmeter-svg text{fill:rgba(0,0,0,0.4)!important;}' +
+    L+' .gmeter-svg line{stroke:rgba(0,0,0,0.12)!important;}' +
+    L+' .gmeter-svg #gmeterNeedle{stroke:rgba(220,50,50,0.75)!important;}' +
+
+    // === Drop slot dashed borders ===
+    L+' .drop-slot{border-color:rgba(0,0,0,0.18)!important;}' +
+
     // === Theme toggle bar (replaces fixed circle button) ===
     '#themeToggleBar{display:none;max-width:280px;margin:1.5rem auto 0;padding:0.5rem 1.2rem;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.5);cursor:pointer;font-size:0.78rem;font-family:inherit;text-align:center;transition:all .3s;letter-spacing:0.02em;}' +
     '#themeToggleBar:hover{border-color:rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);}' +

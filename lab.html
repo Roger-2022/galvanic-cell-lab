@@ -994,8 +994,12 @@ async function initGroupScreen() {
     btn.className = 'group-btn';
     btn.innerHTML = `${i}<span>第${i}组</span>`;
     if (data.success) {
-      btn.style.borderColor = 'rgba(92,184,92,0.3)';
-      btn.style.background = 'rgba(92,184,92,0.05)';
+      btn.style.borderColor = 'var(--green)';
+      btn.style.background = 'rgba(92,184,92,0.12)';
+      btn.innerHTML += '<span style="font-size:0.4rem;color:var(--green);display:block;margin-top:0.1rem;">已完成</span>';
+    } else if (data.attemptsUsed > 0) {
+      btn.style.borderColor = 'rgba(201,168,76,0.4)';
+      btn.innerHTML += '<span style="font-size:0.4rem;color:var(--gold);display:block;margin-top:0.1rem;">进行中</span>';
     }
     btn.onclick = () => enterLab(i);
     grid.appendChild(btn);
