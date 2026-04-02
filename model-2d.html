@@ -125,9 +125,9 @@
         <text x="210" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">H₂</text>
         <text x="510" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">O₂</text>
         <!-- Wire: left electrode to bulb -->
-        <path d="M239 110 L239 55 Q239 35 259 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <path d="M239 110 L239 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
         <!-- Wire: right electrode to bulb -->
-        <path d="M481 110 L481 55 Q481 35 461 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <path d="M481 110 L481 35 L360 35" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
         <!-- Motor body (horizontal rectangle) -->
         <rect x="342" y="23" width="36" height="24" rx="4" fill="rgba(100,100,120,0.3)" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" id="motorBody"/>
         <!-- Motor end cap -->
@@ -266,15 +266,12 @@ window.addEventListener('resize', () => { rc(); if (an) { createAllParticles(); 
 
 // ─── Wire path (electron flow: left electrode → up → along wire → through bulb → down to right electrode) ───
 function getWirePath() {
+  // Straight lines with right-angle bends
   return [
     {x: 239*sx, y: 110*sy},
-    {x: 239*sx, y: 55*sy},
-    {x: 259*sx, y: 35*sy},
-    {x: 310*sx, y: 35*sy},
-    {x: 360*sx, y: 35*sy},
-    {x: 410*sx, y: 35*sy},
-    {x: 461*sx, y: 35*sy},
-    {x: 481*sx, y: 55*sy},
+    {x: 239*sx, y: 35*sy},   // straight up, right angle
+    {x: 360*sx, y: 35*sy},   // across to motor
+    {x: 481*sx, y: 35*sy},   // across to right, right angle
     {x: 481*sx, y: 110*sy}
   ];
 }

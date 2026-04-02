@@ -119,9 +119,9 @@
         <!-- New labels in solution -->
         <text x="210" y="310" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">Fe²⁺</text>
         <text x="510" y="240" text-anchor="middle" fill="#5cb85c" font-size="14" font-weight="500">H₂</text>
-        <!-- Wire: left electrode to G-meter, then G-meter to right electrode -->
-        <path d="M239 110 L239 55 Q239 30 280 30 L342 25" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
-        <path d="M378 25 Q440 30 481 30 L481 55 L481 110" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <!-- Wire: straight lines with right-angle bends -->
+        <path d="M239 110 L239 25 L342 25" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
+        <path d="M378 25 L481 25 L481 110" fill="none" stroke="#c9a84c" stroke-width="2.5" opacity="0.6"/>
         <!-- G-meter (galvanometer) -->
         <circle cx="360" cy="25" r="18" fill="rgba(40,40,50,0.5)" stroke="rgba(255,255,255,0.2)" stroke-width="1.2" id="gmBody"/>
         <path d="M345 32 A18 18 0 0 1 375 32" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.6"/>
@@ -254,29 +254,15 @@ window.addEventListener('resize', () => { rc(); if (an) { createAllParticles(); 
 
 // ─── Wire path (electron flow: left electrode → up → along wire arc → down to right electrode) ───
 function getWirePath() {
-  // Match the SVG bezier curves: Q239,30 280,30 (left) and Q481,30 440,30 (right)
-  // Sample the quadratic bezier for smooth particle path
-  const pts = [];
-  // Left electrode going up
-  pts.push({x: 239*sx, y: 110*sy});
-  pts.push({x: 239*sx, y: 55*sy});
-  // Left bezier Q(239,30) to (280,30) — sample 5 intermediate points
-  for (let t = 0.2; t <= 1; t += 0.2) {
-    const qx = (1-t)*(1-t)*239 + 2*(1-t)*t*239 + t*t*280;
-    const qy = (1-t)*(1-t)*55 + 2*(1-t)*t*30 + t*t*30;
-    pts.push({x: qx*sx, y: qy*sy});
-  }
-  pts.push({x: 342*sx, y: 25*sy});   // left edge of G-meter
-  pts.push({x: 378*sx, y: 25*sy});   // right edge of G-meter
-  // Right bezier from (440,30) Q(481,30) to (481,55) — sample
-  pts.push({x: 440*sx, y: 30*sy});
-  for (let t = 0.2; t <= 1; t += 0.2) {
-    const qx = (1-t)*(1-t)*440 + 2*(1-t)*t*481 + t*t*481;
-    const qy = (1-t)*(1-t)*30 + 2*(1-t)*t*30 + t*t*55;
-    pts.push({x: qx*sx, y: qy*sy});
-  }
-  pts.push({x: 481*sx, y: 110*sy});
-  return pts;
+  // Straight lines with right-angle bends, matching the SVG path
+  return [
+    {x: 239*sx, y: 110*sy},  // Fe electrode top
+    {x: 239*sx, y: 25*sy},   // up to wire level (right angle)
+    {x: 342*sx, y: 25*sy},   // across to G-meter left
+    {x: 378*sx, y: 25*sy},   // G-meter right
+    {x: 481*sx, y: 25*sy},   // across to Cu electrode column (right angle)
+    {x: 481*sx, y: 110*sy}   // down to Cu electrode top
+  ];
 }
 
 // ─── Particle classes ───
