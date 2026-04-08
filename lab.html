@@ -499,6 +499,7 @@
 
   .history-result-tag.pass { background: rgba(92,184,92,0.15); color: var(--green); }
   .history-result-tag.fail { background: rgba(217,83,79,0.15); color: var(--red); }
+  .history-result-tag.explore { background: rgba(92,196,196,0.15); color: var(--cyan); }
 
   .history-choices {
     font-size: 0.75rem;
@@ -1319,30 +1320,32 @@ async function submitDesign() {
   if (!isExploring) {
     // Normal attempt: check limits
     if (data.attemptsUsed >= CONFIG.maxAttempts) return;
-
     data.attemptsUsed++;
-    data.attempts.push({
-      neg, pos, sol,
-      negName: choices.neg_electrode?.name,
-      posName: choices.pos_electrode?.name,
-      solName: choices.solution?.name,
-      success: result.task1 && result.task2,
-      task1: result.task1,
-      task2: result.task2,
-      task2Status: result.task2Status,
-      deflection: result.deflection,
-      feedback: result.hint,
-      timestamp: Date.now()
-    });
-
-    if (result.task1 && result.task2) {
-      data.success = true;
-    }
-
-    saveGroupData(currentGroup, data);
-    updateLabUI(data);
-    renderHistory(data);
   }
+
+  // Record attempt (both normal and exploring)
+  data.attempts.push({
+    neg, pos, sol,
+    negName: choices.neg_electrode?.name,
+    posName: choices.pos_electrode?.name,
+    solName: choices.solution?.name,
+    success: result.task1 && result.task2,
+    task1: result.task1,
+    task2: result.task2,
+    task2Status: result.task2Status,
+    deflection: result.deflection,
+    feedback: result.hint,
+    exploring: isExploring,
+    timestamp: Date.now()
+  });
+
+  if (!isExploring && result.task1 && result.task2) {
+    data.success = true;
+  }
+
+  saveGroupData(currentGroup, data);
+  updateLabUI(data);
+  renderHistory(data);
 
   // Disable submit during animation
   document.getElementById('submitBtn').disabled = true;
@@ -1484,17 +1487,26 @@ function renderHistory(data) {
   }
 
   list.innerHTML = '';
+  // Pre-compute normal attempt numbers (1-based)
+  const nums = [];
+  let nc = 0;
+  data.attempts.forEach(a => { nums.push(a.exploring ? 0 : ++nc); });
   [...data.attempts].reverse().forEach((attempt, idx) => {
-    const num = data.attempts.length - idx;
+    const origIdx = data.attempts.length - 1 - idx;
+    const num = nums[origIdx];
     const item = document.createElement('div');
     const bothPass = attempt.task1 && attempt.task2;
     const partial = attempt.task1 && !attempt.task2;
+    const isExplore = attempt.exploring === true;
     item.className = `history-item ${bothPass ? 'success' : 'failure'}`;
     const deflText = attempt.deflection === 'right' ? 'G表右偏' : attempt.deflection === 'left' ? 'G表左偏' : 'G表不偏转';
+    const label = isExplore ? '探索' : `第 ${num} 次尝试`;
+    const tagClass = isExplore ? (bothPass ? 'pass' : 'explore') : (bothPass ? 'pass' : 'fail');
+    const tagText = isExplore ? '自由探索' : (bothPass ? '全部完成' : partial ? '部分完成' : '未通过');
     item.innerHTML = `
       <div class="history-attempt-num">
-        第 ${num} 次尝试
-        <span class="history-result-tag ${bothPass ? 'pass' : 'fail'}">${bothPass ? '全部完成' : partial ? '部分完成' : '未通过'}</span>
+        ${label}
+        <span class="history-result-tag ${tagClass}">${tagText}</span>
       </div>
       <div class="history-choices">
         负极：${attempt.negName} &nbsp;|&nbsp; 正极：${attempt.posName} &nbsp;|&nbsp; 溶液：${attempt.solName}
