@@ -70,12 +70,12 @@
       '.mat-icon{width:26px!important;height:26px!important;font-size:0.6rem!important;}' +
       '.mat-name{font-size:0.7rem!important;}' +
       '.material-item{padding:0.35rem 0.5rem!important;gap:0.4rem!important;}' +
-      // Question modal safety
-      '#questionModal>div{max-width:calc(100vw - 2rem)!important;}' +
-      // Result overlay
-      '.result-card{max-width:360px!important;padding:1.2rem!important;}' +
-      '.result-task-title{font-size:0.8rem!important;}' +
-      '.result-task-desc{font-size:0.72rem!important;}' +
+      // Question modal: override inline width:420px
+      '#questionModal>div{width:calc(100vw - 2rem)!important;max-width:420px!important;}' +
+      // Admin login modal: override inline width:300px
+      '#adminLogin>div{width:calc(100vw - 2rem)!important;max-width:300px!important;}' +
+      // G-meter: scale with diagram
+      '.gmeter-svg{width:clamp(50px,11%,80px)!important;height:auto!important;}' +
       // Model detail panel (3D full class names + 2D abbreviated)
       '.detail-panel{width:clamp(220px,28vw,280px)!important;padding:1rem!important;}' +
       '.detail-title{font-size:0.95rem!important;}' +
@@ -145,6 +145,12 @@
       '.hint-text{display:none!important;}' +
     '}' +
 
+    // ── Small tablet / large phone (max-width 768px) ──
+    '@media screen and (max-width:768px){' +
+      '.group-grid{grid-template-columns:repeat(4,1fr)!important;}' +
+      '.group-btn{width:65px!important;height:65px!important;font-size:0.85rem!important;}' +
+    '}' +
+
     // ── Phone portrait (max-width 600px) ──
     '@media screen and (max-width:600px){' +
       // Diagram containers: force fluid width
@@ -182,9 +188,14 @@
       '.card-icon{width:40px!important;height:40px!important;}' +
       '.card-title{font-size:1rem!important;}' +
       '.card-desc{font-size:0.7rem!important;}' +
-      // Result overlay
-      '.result-card{max-width:calc(100vw - 2rem)!important;padding:1rem!important;}' +
-      '#questionModal>div{max-width:calc(100vw - 1rem)!important;max-height:80vh!important;overflow-y:auto!important;}' +
+      // Modals: override inline fixed widths
+      '#questionModal>div{width:calc(100vw - 1rem)!important;max-width:420px!important;max-height:80vh!important;overflow-y:auto!important;}' +
+      '#adminLogin>div{width:calc(100vw - 1.5rem)!important;max-width:300px!important;}' +
+      // G-meter: smaller on phones
+      '.gmeter-svg{width:40px!important;height:auto!important;}' +
+      // FAB: smaller and tighter on phones
+      '#qFabWrapper{bottom:0.5rem!important;right:0.5rem!important;}' +
+      '#qFabBtn{width:44px!important;height:44px!important;}' +
       // Step nav and mode bar
       '.step-nav,.mode-bar{padding:0.3rem 0.5rem!important;gap:0.3rem!important;}' +
       '.step-dot{width:6px!important;height:6px!important;}' +

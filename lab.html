@@ -66,7 +66,7 @@
   }
 
   .group-btn {
-    width: 80px; height: 80px;
+    width: min(80px, 16vw); height: min(80px, 16vw);
     border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--bg-panel);
@@ -165,6 +165,13 @@
     display: grid;
     grid-template-columns: minmax(150px, 220px) 1fr minmax(170px, 260px);
     overflow: hidden;
+  }
+  /* Fallback responsive (works even if mobile.js fails to load) */
+  @media (max-width: 600px) {
+    .lab-main {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+    }
   }
 
   /* ── Material tray (left) ── */
